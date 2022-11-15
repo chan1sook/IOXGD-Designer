@@ -1,168 +1,181 @@
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>IOXGD Designer</title>
+  <head>
+    <meta charset="utf-8" />
+    <title>IOXGD Designer</title>
 
-        <!-- Style -->
-        <link rel="stylesheet" href="fontawesome/css/all.css">
-        <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/font-Montserrat.css">
+    <!-- Style -->
+    <link rel="stylesheet" href="fontawesome/css/all.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/font-Montserrat.css" />
 
-        <!-- Javascript -->
-        <!-- Insert this line above script imports  -->
-        <script>
-        if (typeof module === 'object') {window.module = module; module = undefined;}
+    <!-- Javascript -->
+    <!-- Insert this line above script imports  -->
+    <script>
+      if (typeof module === "object") {
+        window.module = module;
+        module = undefined;
+      }
 
-        // include
-        const remote = require('electron').remote;
-        const dialog = remote.dialog;
-        const fs = require("fs");
-        const { promisify } = require('util');
-        const simulator = require("./simulator/compiler.js");
-        const { exec, execFileSync } = require("child_process");
-        const path = require('path');
-        const pjson = require('./package.json');
-        const net = require('net');
-        const dialogs = require('dialogs')();
+      // include
+      const remote = require("electron").remote;
+      const dialog = remote.dialog;
+      const fs = require("fs");
+      const { promisify } = require("util");
+      const simulator = require("./simulator/compiler.js");
+      const { exec, execFileSync } = require("child_process");
+      const path = require("path");
+      const pjson = require("./package.json");
+      const net = require("net");
+      const dialogs = require("dialogs")();
 
-        const readFileAsync = promisify(fs.readFile);
-        const writeFileAsync = promisify(fs.writeFile);
-        </script>
+      const readFileAsync = promisify(fs.readFile);
+      const writeFileAsync = promisify(fs.writeFile);
+    </script>
 
-        <script src="js/jquery-3.4.1.min.js"></script>
-        <script src="js/jscolor.js"></script>
-        <script src="js/zoom.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/jscolor.js"></script>
 
-        <!-- Insert this line after script imports -->
-        <script>if (window.module) module = window.module;</script>
+    <!-- Insert this line after script imports -->
+    <script>
+      if (window.module) module = window.module;
+    </script>
+  </head>
 
-        <style id="custom-css"></style>
-
-    </head>
-
-    <body>
-        <section>
-            <header>
-                <section class="menu">
-                    <ul class="object" id="object-list">
-                        <!-- Component list button -->
-                        <!-- <li>
+  <body>
+    <section>
+      <header>
+        <section class="menu">
+          <ul class="object" id="object-list">
+            <!-- Component list button -->
+            <!-- <li>
                             <span class="icon"><i class="fas fa-font"></i></span>
                             <span class="label">Label</span>
                         </li> -->>
-                    </ul>
+          </ul>
 
-                    <ul>
-                        <li id="simulator-btn">
-                            <span class="icon"><i class="fas fa-play"></i></span>
-                            <span class="label">Play</span>
-                        </li>
-                        <li id="get-it-btn">
-                            <span class="icon"><i class="fas fa-download"></i></span>
-                            <span class="label">Get it!</span>
-                        </li>
-                    </ul>
-                </section>
-            </header>
+          <ul>
+            <li id="simulator-btn">
+              <span class="icon"><i class="fas fa-play"></i></span>
+              <span class="label">Play</span>
+            </li>
+            <li id="get-it-btn">
+              <span class="icon"><i class="fas fa-download"></i></span>
+              <span class="label">Get it!</span>
+            </li>
+          </ul>
+        </section>
+      </header>
 
-            <section class="content">
-                <section class="space">
-                    <div class="box-sketch">
-                        <section id="sketch">
-                            <hr id="component-frame1"><!-- Top -->
-                            <hr id="component-frame2"><!-- Right -->
-                            <hr id="component-frame3"><!-- Bottom -->
-                            <hr id="component-frame4"><!-- Left -->
-                        </section>
-                    </div>
+      <section class="content">
+        <!-- <section class="project-structure" id="page-list">
+          <div>
+            <i class="fas fa-caret-down fa-fw"></i>
+            Page 1
+          </div>
+        </section> -->
+        <section class="space">
+          <div class="box-sketch">
+            <section id="sketch">
+              <hr id="component-frame1" />
+              <!-- Top -->
+              <hr id="component-frame2" />
+              <!-- Right -->
+              <hr id="component-frame3" />
+              <!-- Bottom -->
+              <hr id="component-frame4" />
+              <!-- Left -->
+            </section>
+          </div>
 
-                    <section class="zoom-panel">
-                        <button id="zoom-in-btn"></button>
-                        <input id="zoom-size" value="100%">
-                        <button id="zoom-out-btn"></button>
-                    </section>
-                </section>
+          <section class="zoom-panel">
+            <button id="zoom-in-btn"></button>
+            <input id="zoom-size" value="100%" />
+            <button id="zoom-out-btn"></button>
+          </section>
+        </section>
 
-                <section class="property">
-                    <ul id="property-box">
-                        <!-- <li>
+        <section class="property">
+          <ul id="property-box">
+            <!-- <li>
                             <div class="label">Name</div>
                             <div class="value"><input type="text"></div>
                         </li> -->
-                    </ul>
-                </section>
-            </section>
-
-            <section class="bottom-bar">
-                <span id="status">Not do thing</span>
-            </section>
+          </ul>
         </section>
+      </section>
 
-        <section class="all-model">
-            <div class="font-model">
-                <a href="#" class="model-close-btn"><i class="fas fa-times"></i></a>
-                <div class="box">
-                    <div class="box-manage">
-                        <article data-name="manage" style="display: none;">
-                            <ul id="font-list">
-                                
-                            </ul>
-                        </article>
-                        <article data-name="add">
-                            <form id="font-add-form">
-                                <label>TTF/WOFF file</label>
-                                <input type="file" id="font-file" accept=".ttf,.woff">
-                                <label>Size</label>
-                                <input type="number" id="font-size" value="30">
-                                <label>Range</label>
-                                <textarea id="font-char" placeholder="Ranges and/or characters to include. E.g. 0x20-0x7F, 0x200, 450"></textarea>
-                                <div class="help-box">
-                                    <span data-range="0x0020-0x007F">Basic Latin</span>
-                                    <span data-range="0x0E00-0x0E7F">ภาษาไทย</span>
-                                </div>
-                                <button type="submit">Add font</button>
-                                <span id="text-add-status"></span>
-                            </form>
-                        </article>
-                        <ul class="tabs">
-                            <li data-content="manage">Manage</li>
-                            <li data-content="add" class="active">Add</li>
-                        </ul>
-                    </div>
-                    <div class="box-preview">
-                        <h1>Preview</h1>
-                        <div class="image-preview">
-                            <img src="" id="img-preview">
-                        </div>
-                        <input type="text" id="font-preview-text" value="ABCD">
-                    </div>
+      <section class="bottom-bar">
+        <span id="status">Not do thing</span>
+      </section>
+    </section>
+
+    <section class="all-model">
+      <div class="font-model">
+        <a href="#" class="model-close-btn"><i class="fas fa-times"></i></a>
+        <div class="box">
+          <div class="box-manage">
+            <article data-name="manage" style="display: none">
+              <ul id="font-list"></ul>
+            </article>
+            <article data-name="add">
+              <form id="font-add-form">
+                <label>TTF/WOFF file</label>
+                <input type="file" id="font-file" accept=".ttf,.woff" />
+                <label>Size</label>
+                <input type="number" id="font-size" value="30" />
+                <label>Range</label>
+                <textarea
+                  id="font-char"
+                  placeholder="Ranges and/or characters to include. E.g. 0x20-0x7F, 0x200, 450"
+                ></textarea>
+                <div class="help-box">
+                  <span data-range="0x0020-0x007F">Basic Latin</span>
+                  <span data-range="0x0E00-0x0E7F">ภาษาไทย</span>
                 </div>
+                <button type="submit">Add font</button>
+                <span id="text-add-status"></span>
+              </form>
+            </article>
+            <ul class="tabs">
+              <li data-content="manage">Manage</li>
+              <li data-content="add" class="active">Add</li>
+            </ul>
+          </div>
+          <div class="box-preview">
+            <h1>Preview</h1>
+            <div class="image-preview">
+              <img src="" id="img-preview" />
             </div>
-        </section>
+            <input type="text" id="font-preview-text" value="ABCD" />
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <script src="js/render.js"></script>
+    <script src="app.js"></script>
+    <script src="js/render.js"></script>
 
-        <!-- Component -->
-        <script src="js/component/common.js"></script>
-        <script src="js/component/object.js"></script>
-        <script src="js/component/label.js"></script>
-        <script src="js/component/button.js"></script>
-        <script src="js/component/led.js"></script>
-        <script src="js/component/image.js"></script>
-        <script src="js/component/chart.js"></script>
-        <script src="js/component/switch.js"></script>
-        <script src="js/component/slider.js"></script>
-        
-        <script src="js/simulator.js"></script>
-        <script src="js/get-file.js"></script>
-        <script src="js/font.js"></script>
-        <script src="js/img_conv.js"></script>
-        <script src="js/model.js"></script>
-        <script src="js/app.js"></script>
-        <script src="js/menu.js"></script>
+    <!-- Component -->
+    <script src="js/component/common.js"></script>
+    <script src="js/component/object.js"></script>
+    <script src="js/component/label.js"></script>
+    <script src="js/component/button.js"></script>
+    <script src="js/component/led.js"></script>
+    <script src="js/component/image.js"></script>
+    <script src="js/component/chart.js"></script>
+    <script src="js/component/switch.js"></script>
+    <script src="js/component/slider.js"></script>
 
-        <script src="js/api.js"></script>
-    </body>
+    <script src="js/simulator.js"></script>
+    <script src="js/get-file.js"></script>
+    <script src="js/font.js"></script>
+    <script src="js/img_conv.js"></script>
+    <script src="js/model.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/menu.js"></script>
+
+    <script src="js/api.js"></script>
+  </body>
 </html>

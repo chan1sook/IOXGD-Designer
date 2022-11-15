@@ -1,54 +1,85 @@
+let zoomLevel = 1.0;
 
-let zoom = 1;
-let space_enter = false;
+/**
+ * Init zoom module
+ * @param {Map} keysDowns
+ */
+function init(keysDowns) {
+  const skecthDOM = document.getElementById("sketch");
+  const zoomSizeDOM = document.getElementById("zoom-size");
+  const zoomInDOM = document.getElementById("zoom-in-btn");
+  const zoomOutDOM = document.getElementById("zoom-out-btn");
 
-$(function() {
-    let updateZoom = () => {
-        if (zoom < 0.1) zoom = 0.1;
-        if (zoom > 4) zoom = 4;
-        $("#sketch").css("zoom", zoom);
-        $("#zoom-size").val(`${Math.round(zoom * 100)}%`);
+  const updateZoom = () => {
+    if (zoomLevel < 0.1) {
+      zoomLevel = 0.1;
+    } else if (zoomLevel > 4) {
+      zoomLevel = 4;
+    }
+    skecthDOM.style.transform = `scale(${zoomLevel})`;
+    zoomSizeDOM.value = `${Math.round(zoomLevel * 100)}%`;
+  };
+
+  const isCtrlDown = () => {
+    return keysDowns.get("Control") === true || keysDowns.get("Meta") === true;
+  };
+
+  const zoomInFn = () => {
+    zoomLevel += 0.1;
+    updateZoom();
+  };
+
+  const zoomOutFn = () => {
+    zoomLevel -= 0.1;
+    updateZoom();
+  };
+
+  zoomInDOM.addEventListener("click", zoomInFn);
+  zoomOutDOM.addEventListener("click", zoomOutFn);
+  zoomSizeDOM.addEventListener("focus", () => {
+    zoomSizeDOM.value = Math.round(zoomLevel * 100);
+    zoomSizeDOM.select();
+  });
+
+  zoomSizeDOM.addEventListener("blur", () => {
+    zoomLevel = parseInt(zoomSizeDOM.value, 10) / 100;
+    updateZoom();
+  });
+  zoomSizeDOM.addEventListener("keypress", (ev) => {
+    if (ev.key === "Enter") {
+      zoomSizeDOM.blur();
+    }
+  });
+
+  window.addEventListener("wheel", (ev) => {
+    if (!isCtrlDown()) {
+      return;
     }
 
-    $("#zoom-in-btn").click(() => {
-        zoom += 0.1;
-        updateZoom();
-    });
+    if (ev.deltaY < 0) {
+      zoomInFn();
+    } else if (ev.deltaY > 0) {
+      zoomOutFn();
+    }
+  });
 
-    $("#zoom-out-btn").click(() => {
-        zoom -= 0.1;
-        updateZoom();
+  const spaceDOMs = Array.from(document.getElementsByClassName("space"));
+  spaceDOMs.forEach((element) => {
+    element.addEventListener("wheel", (ev) => {
+      ev.preventDefault();
     });
+  });
+}
 
-    $("#zoom-size").focus(() => {
-        $("#zoom-size").val(Math.round(zoom * 100));
-        $("#zoom-size").select();
-    });
+/**
+ * getZoomLevel
+ * @returns zoomLevel
+ */
+function getZoomLevel() {
+  return zoomLevel;
+}
 
-    $("#zoom-size").blur(() => {
-        zoom = parseInt($("#zoom-size").val()) / 100;
-        updateZoom();
-    });
-
-    $("#zoom-size").keypress(function(e){
-        if(e.which == 13) {
-            $(this).blur();    
-        }
-    });
-
-    $(window).on('wheel', function(event){
-        if (!ctrlDown) {
-            return;
-        }
-
-        if(event.originalEvent.deltaY < 0){ // wheeled up
-            $("#zoom-in-btn").click();
-        } else { // wheeled down
-            $("#zoom-out-btn").click();
-        }
-    });
-
-    $(".space").on('wheel', function(e){
-        e.preventDefault();
-    });
+module.exports = Object.freeze({
+  init,
+  getZoomLevel,
 });

@@ -1,7 +1,7 @@
 {
   "name": "ioxgd-designer",
   "version": "1.3.0",
-  "description": "",
+  "description": "โปรแกรมช่วยออกแบบหน้าจอสำหรับบอร์ด IOXGD สามารถ export เป็นโค้ดภาษา C/C++ เพื่อไปเขียนโปรแกรมต่อบน ArduinoIDE ได้",
   "main": "main.js",
   "dependencies": {
     "dialogs": "^2.0.1",
