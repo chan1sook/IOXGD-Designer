@@ -1,9 +1,5 @@
-const {
-  LASTEST_VERSION,
-  loadDataFromFile,
-  saveDataToFile,
-} = require("./js/savefile.js");
-const { devLog } = require("./js/loggers.js");
+const { LASTEST_VERSION } = require("./js/savefile.js");
+const menuModule = require("./js/menu.js");
 const zoomModule = require("./js/zoom.js");
 
 let projectData = {
@@ -13,12 +9,13 @@ let projectData = {
   pages: [
     {
       name: "index",
-      background: {
+      type: "page",
+      children: [],
+      options: {
         main_color: "#FFFFFF",
         grad_color: "#FFFFFF",
         grad_dir: "0",
       },
-      component: {},
     },
   ],
 };
@@ -32,6 +29,7 @@ document.addEventListener("keyup", (ev) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  menuModule.init(projectData);
   zoomModule.init(keysDowns);
 });
 
@@ -87,25 +85,4 @@ function reconfigDraggable() {
     $(this).unbind("mousemove");
     $(this).unbind("mouseup");
   });
-}
-
-async function loadProject(file, cb) {
-  const fileProjectData = await loadDataFromFile(file);
-
-  devLog("fileProjectData", fileProjectData);
-
-  if (fileProjectData) {
-    projectData = fileProjectData;
-
-    await updateFontInArray();
-    rerenderComponent();
-    $("#sketch").click();
-    $(".property").change();
-
-    if (typeof cb === "function") cb();
-  }
-}
-
-function saveProject(filepath, cb) {
-  saveDataToFile(projectData, filepath, cb);
 }

@@ -1,31 +1,33 @@
+function getCurrentPage() {
+  return projectData.pages[projectData.activePage];
+}
+
 function updateComponentFrame() {
-  let n = $(".focus").length;
-  if (n >= 1) {
-    let x = 0,
-      y = 0,
-      width = 0,
-      height = 0;
-    let focus = $(".focus")[n - 1];
-    // let offset = $("#sketch").offset();
-    let id = focus.getAttribute("data-id");
-    let name = projectData.pages[projectData.activePage].component[id].name;
+  const componentFramesDOM = new Array(4)
+    .fill(undefined)
+    .map((_, i) => document.getElementById(`component-frame${i + 1}`));
+  const focusDOMs = document.getElementsByClassName("focus");
 
-    let comp;
+  if (focusDOMs.length > 0) {
+    let x = 0;
+    let y = 0;
+    let width = 0;
+    let height = 0;
+    const focusDOM = focusDOMs.item(0);
+    const id = focusDOM.getAttribute("data-id");
+    const seq = parseInt(id.replace("component-", ""), 10);
 
-    // Find component name in list
-    abstractComponentList.forEach(function (element) {
-      if (element.name === name) {
-        comp = element;
-      }
-    });
+    const currentPage = getCurrentPage();
+    const currentComponent = currentPage.children[seq];
+    let name = currentComponent.name;
+
+    let comp = abstractComponentList.find((ele) => ele.name === name);
     if (typeof comp === "undefined") {
       alert("Error!, not found " + name);
       return;
     }
 
-    let move = comp.render.frame.bind(
-      projectData.pages[projectData.activePage].component[id]
-    )();
+    let move = comp.render.frame.bind(currentComponent)();
     if (move.length === 4) {
       x = move[0];
       y = move[1];
@@ -34,45 +36,33 @@ function updateComponentFrame() {
     } else if (move.length == 2) {
       x = move[0];
       y = move[1];
-      width = focus.offsetWidth;
-      height = focus.offsetHeight;
+      width = focusDOM.offsetWidth;
+      height = focusDOM.offsetHeight;
     } else {
-      x = focus.offsetLeft;
-      y = focus.offsetTop;
-      width = focus.offsetWidth;
-      height = focus.offsetHeight;
+      x = focusDOM.offsetLeft;
+      y = focusDOM.offsetTop;
+      width = focusDOM.offsetWidth;
+      height = focusDOM.offsetHeight;
     }
 
-    if (
-      typeof projectData.pages[projectData.activePage].component[id].property
-        .parent !== "undefined"
-    ) {
-      if (
-        projectData.pages[projectData.activePage].component[id].property
-          .parent !== ""
-      ) {
-        let parentName =
-          projectData.pages[projectData.activePage].component[id].property
-            .parent;
-        let nameToId = [];
-        for (let ObjName of Object.keys(
-          projectData.pages[projectData.activePage].component
-        )) {
-          nameToId[
-            projectData.pages[projectData.activePage].component[
-              ObjName
-            ].property.name
-          ] = ObjName;
+    if (typeof currentComponent.property.parent !== "undefined") {
+      if (currentComponent.property.parent !== "") {
+        let parentName = currentComponent.property.parent;
+        let nameToId = {};
+
+        for (let i = 0; i < currentPage.children.length; i += 1) {
+          nameToId[currentPage.children[i].property.name] = i;
         }
+
         while (1) {
           // loop find last parent
           let parentId = nameToId[parentName];
-          let parent = $(svgSketch).find(`[data-id='${parentId}']`)[0];
+          let parent = $(svgSketch).find(
+            `[data-id='component-${parentId}']`
+          )[0];
           x += parent.offsetLeft;
           y += parent.offsetTop;
-          parentName =
-            projectData.pages[projectData.activePage].component[parentId]
-              .property.parent || "";
+          parentName = currentPage.children[parentId].property.parent || "";
           if (parentName === "") {
             break;
           }
@@ -81,113 +71,38 @@ function updateComponentFrame() {
     }
 
     // Top
-    $("#component-frame1").css({ left: x - 1, top: y - 1, width: width + 2 });
+    componentFramesDOM[0].style.left = `${x - 1}px`;
+    componentFramesDOM[0].style.top = `${y - 1}px`;
+    componentFramesDOM[0].style.width = `${width + 2}px`;
 
     // Right
-    $("#component-frame2").css({
-      left: x + width,
-      top: y - 1,
-      height: height + 2,
-    });
+    componentFramesDOM[1].style.left = `${x + width}px`;
+    componentFramesDOM[1].style.top = `${y - 1}px`;
+    componentFramesDOM[1].style.height = `${height + 2}px`;
 
     // Bottom
-    $("#component-frame3").css({
-      left: x - 1,
-      top: y + height,
-      width: width + 2,
-    });
+    componentFramesDOM[2].style.left = `${x - 1}px`;
+    componentFramesDOM[2].style.top = `${y + height}px`;
+    componentFramesDOM[2].style.width = `${width + 2}px`;
 
     // Left
-    $("#component-frame4").css({ left: x - 1, top: y - 1, height: height + 2 });
+    componentFramesDOM[3].style.left = `${x - 1}px`;
+    componentFramesDOM[3].style.top = `${y - 1}px`;
+    componentFramesDOM[3].style.height = `${height + 2}px`;
 
-    $(
-      "#component-frame1, #component-frame2, #component-frame3, #component-frame4"
-    ).show();
-  } else {
-    $(
-      "#component-frame1, #component-frame2, #component-frame3, #component-frame4"
-    ).hide();
-  }
-}
-
-function savePageAndProject() {
-  let pagePath = path.resolve(project.path + "/" + project.name);
-
-  if (!fs.existsSync(pagePath)) {
-    try {
-      fs.mkdirSync(pagePath);
-    } catch (err) {
-      alert("Can't create project directory, Plz close File Explorer");
-      return;
+    for (const dom of componentFramesDOM) {
+      dom.style.display = "block";
     }
-  }
-
-  let projectFile = pagePath + "/" + project.name + ".kd";
-  let projectFileContent = JSON.stringify({
-    pages: project.pages,
-  });
-  try {
-    fs.writeFileSync(projectFile, projectFileContent); // Write page file
-  } catch (err) {
-    alert("Can't write project file, Your disk is full ?");
-    return;
-  }
-
-  let contentFile = componentToJson();
-
-  try {
-    fs.writeFileSync(
-      pagePath + "/" + project.activePageName + ".json",
-      contentFile
-    ); // Write page file
-  } catch (err) {
-    alert("Can't write page file, Your disk is full ?");
-    return;
+  } else {
+    for (const dom of componentFramesDOM) {
+      dom.style.display = "none";
+    }
   }
 }
 
 function removeAllComponent() {
   $(svgSketch).find(".component").remove();
   componentList = {};
-}
-
-function updatePageListAndActiveOld() {
-  let html = "";
-  for (var i = 0; i < project.pages.length; i++) {
-    html +=
-      "<li" +
-      (project.activePageName === project.pages[i] ? ' class="active"' : "") +
-      ">";
-    html += project.pages[i];
-    html += "</li>";
-  }
-  $("#page-list").html(html);
-
-  $("#page-list > li").click(function () {
-    if ($(this).text() === project.activePageName) {
-      return;
-    }
-    if (project.activePageName !== null) savePageAndProject(); // Save old page
-    removeAllComponent();
-
-    project.activePageName = $(this).text();
-    $("#page-list > li").removeClass("active");
-    $(this).addClass("active");
-
-    let filePath = path.resolve(
-      project.path + "/" + project.name + "/" + project.activePageName + ".json"
-    );
-
-    let contentFile;
-    try {
-      contentFile = fs.readFileSync(filePath);
-    } catch (err) {
-      console.log("Can't open file " + project.activePageName + ".json !");
-      return;
-    }
-
-    loadComponentFromJson(contentFile);
-  });
 }
 
 let show_grid = false;
@@ -199,26 +114,19 @@ let updateSketchBackground = () => {
   canvas.height = 480;
   let ctx = canvas.getContext("2d");
 
-  if (+projectData.pages[projectData.activePage].background.grad_dir === 0) {
-    ctx.fillStyle =
-      projectData.pages[projectData.activePage].background.main_color;
+  const currentPage = getCurrentPage();
+
+  if (+currentPage.options.grad_dir === 0) {
+    ctx.fillStyle = currentPage.options.main_color;
   } else {
     let gradient;
-    if (+projectData.pages[projectData.activePage].background.grad_dir === 1) {
+    if (+currentPage.options.grad_dir === 1) {
       gradient = ctx.createLinearGradient(0, 0, 800, 0);
-    } else if (
-      +projectData.pages[projectData.activePage].background.grad_dir === 2
-    ) {
+    } else if (+currentPage.options.grad_dir === 2) {
       gradient = ctx.createLinearGradient(0, 0, 0, 480);
     }
-    gradient.addColorStop(
-      0,
-      projectData.pages[projectData.activePage].background.main_color
-    );
-    gradient.addColorStop(
-      1,
-      projectData.pages[projectData.activePage].background.grad_color
-    );
+    gradient.addColorStop(0, currentPage.options.main_color);
+    gradient.addColorStop(1, currentPage.options.grad_color);
     ctx.fillStyle = gradient;
   }
 
@@ -257,8 +165,9 @@ $(function () {
       // Delete
       let focus = $(".focus");
       let id = focus.attr("data-id");
+      const seq = parseInt(id.replace("component-", ""), 10);
       focus.remove();
-      delete projectData.pages[projectData.activePage].component[id];
+      delete getCurrentPage().children[seq];
 
       // Hide frame
       updateComponentFrame();
@@ -311,37 +220,29 @@ $(function () {
 
     updateComponentFrame();
 
+    const currentPage = getCurrentPage();
+
     let code = "";
     code += `<li>`;
     code += `<div class="label">Main color</div>`;
-    code += `<div class="value"><input type="text" class="input-color property" data-property="main_color" value="${
-      projectData.pages[projectData.activePage].background.main_color
-    }"></div>`;
+    code += `<div class="value"><input type="text" class="input-color property" data-property="main_color" value="${currentPage.options.main_color}"></div>`;
     code += `</li>`;
     code += `<li>`;
     code += `<div class="label">Gradient color</div>`;
-    code += `<div class="value"><input type="text" class="input-color property" data-property="grad_color" value="${
-      projectData.pages[projectData.activePage].background.grad_color
-    }"></div>`;
+    code += `<div class="value"><input type="text" class="input-color property" data-property="grad_color" value="${currentPage.options.grad_color}"></div>`;
     code += `</li>`;
     code += `<li>`;
     code += `<div class="label">Gradient direction</div>`;
     code += `<div class="value">`;
     code += `<select class="property" data-property="grad_dir">`;
     code += `<option value="0"${
-      +projectData.pages[projectData.activePage].background.grad_dir === 0
-        ? " selected"
-        : ""
+      +currentPage.options.grad_dir === 0 ? " selected" : ""
     }>None</option>`;
     code += `<option value="1"${
-      +projectData.pages[projectData.activePage].background.grad_dir === 1
-        ? " selected"
-        : ""
+      +currentPage.options.grad_dir === 1 ? " selected" : ""
     }>Horizontal</option>`;
     code += `<option value="2"${
-      +projectData.pages[projectData.activePage].background.grad_dir === 2
-        ? " selected"
-        : ""
+      +currentPage.options.grad_dir === 2 ? " selected" : ""
     }>Vertical</option>`;
     code += `</select>`;
     code += `</div>`;
@@ -356,14 +257,8 @@ $(function () {
     $(".property").off();
     $(".property").change(async function (e) {
       let propertyName = e.target.getAttribute("data-property");
-      projectData.pages[projectData.activePage].background[propertyName] =
-        e.target.value;
+      currentPage.options[propertyName] = e.target.value;
 
-      /*
-      $("#sketch").css({
-        background: `linear-gradient(180deg, ${projectData.pages[projectData.activePage].background.main_color} 0%, ${projectData.pages[projectData.activePage].background.grad_color} 100%)`,
-      });
-      */
       updateSketchBackground();
     });
   });
@@ -381,8 +276,9 @@ $(function () {
   let duplicateComponent = async (sourceID) => {
     if (!sourceID) sourceID = $(".focus").attr("data-id");
 
-    let sourceComponent =
-      projectData.pages[projectData.activePage].component[sourceID];
+    const seq = parseInt(sourceID.replace("component-", ""), 10);
+    const currentPage = getCurrentPage();
+    let sourceComponent = currentPage.children[seq];
 
     if (!sourceComponent) {
       return;
@@ -397,52 +293,37 @@ $(function () {
       return;
     }
 
-    let newID = `component-${componentCount++}`;
+    componentCount += 1;
+    let newID = `component-${componentCount}`;
+    const newSeq = componentCount;
 
-    projectData.pages[projectData.activePage].component[newID] = JSON.parse(
-      JSON.stringify(sourceComponent)
-    );
-    projectData.pages[projectData.activePage].component[newID].property.name =
-      comp.property.name.default();
-    projectData.pages[projectData.activePage].component[newID].property.x += 10;
-    projectData.pages[projectData.activePage].component[newID].property.y += 10;
+    currentPage.children[newSeq] = JSON.parse(JSON.stringify(sourceComponent));
+    currentPage.children[newSeq].property.name = comp.property.name.default();
+    currentPage.children[newSeq].property.x += 10;
+    currentPage.children[newSeq].property.y += 10;
 
     let element = comp.render.create();
     element.setAttribute("data-id", newID);
     element.setAttribute("class", "component");
 
-    if (
-      !projectData.pages[projectData.activePage].component[newID].property
-        .parent
-    ) {
+    if (!currentPage.children[newSeq].property.parent) {
       svgSketch.appendChild(element);
     } else {
-      let nameToId = [];
-      for (let ObjName of Object.keys(
-        projectData.pages[projectData.activePage].component
-      )) {
-        nameToId[
-          projectData.pages[projectData.activePage].component[
-            ObjName
-          ].property.name
-        ] = ObjName;
+      let nameToId = {};
+      for (let i = 0; i < currentPage.children.length; i += 1) {
+        nameToId[currentPage.children[i].property.name] = i;
       }
 
       $(svgSketch)
         .find(
-          `[data-id='${
-            nameToId[
-              projectData.pages[projectData.activePage].component[newID]
-                .property.parent
-            ]
+          `[data-id='component-${
+            nameToId[currentPage.children[newSeq].property.parent]
           }']`
         )[0]
         .appendChild(element);
     }
 
-    comp.render.update.bind(
-      projectData.pages[projectData.activePage].component[newID]
-    )(element);
+    comp.render.update.bind(currentPage.children[newSeq])(element);
 
     reconfigDraggable();
 

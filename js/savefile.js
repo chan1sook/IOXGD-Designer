@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { devLog, devError } = require("./loggers.js");
 const LASTEST_VERSION = 2;
 
@@ -49,13 +50,54 @@ function _convertSaveData(jsonData) {
       return {
         fonts: jsonData.font,
         activePage: 0,
-        pages: jsonData.page,
+        pages: jsonData.page.map(_converPageData),
         version: LASTEST_VERSION,
       };
     case LASTEST_VERSION:
     default:
-      return jsonData;
+      return {
+        ...jsonData,
+        pages: jsonData.pages.map(_converPageData),
+      };
   }
+}
+
+/**
+ * Convert pageData to lastest version
+ * @param {Object} pageData
+ * @returns pageData
+ */
+function _converPageData(pageData) {
+  const result = {
+    name: pageData.name,
+    type: pageData.type || "page",
+    options: pageData.options,
+    children: pageData.children,
+  };
+
+  if (!Array.isArray(result.children)) {
+    if (_isObject(result.component)) {
+      result.children = Object.values(result.component);
+    } else {
+      result.children = [];
+    }
+  }
+
+  if (!_isObject(result.options)) {
+    if (_isObject(result.background)) {
+      result.options = {
+        ...result.background,
+      };
+    } else {
+      result.options = {
+        main_color: "#FFFFFF",
+        grad_color: "#FFFFFF",
+        grad_dir: "0",
+      };
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -139,9 +181,8 @@ async function loadDataFromFile(filePath) {
  * save data to file
  * @param {Object} projectData
  * @param {String} filePath
- * @param {Function?} cb
  */
-async function saveDataToFile(projectData, filePath, cb) {
+async function saveDataToFile(projectData, filePath) {
   try {
     let saveData = {
       ...projectData,
@@ -158,7 +199,7 @@ async function saveDataToFile(projectData, filePath, cb) {
 
     const rawData = JSON.stringify(saveData, null, "");
     devLog("saveProject length", rawData.length);
-    fs.writeFile(filePath, rawData, cb);
+    fs.writeFileSync(filePath, rawData);
   } catch (err) {
     devError(err);
   }

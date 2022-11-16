@@ -6,6 +6,10 @@ const svgSketch = document.getElementById("sketch");
 var componentCount = 0;
 var abstractComponentList = [];
 
+function getCurrentPage() {
+  return projectData.pages[projectData.activePage];
+}
+
 function addComponent(comp) {
   abstractComponentList.push(comp);
 }
@@ -24,12 +28,14 @@ function createComponent(name) {
   }
 
   id = "component-" + componentCount;
-  componentCount++;
+  const seq = componentCount;
+  componentCount += 1;
 
+  const currentPage = getCurrentPage();
   // console.log(comp);
-  projectData.pages[projectData.activePage].component[id] = {};
-  projectData.pages[projectData.activePage].component[id].name = comp.name;
-  projectData.pages[projectData.activePage].component[id].property = {};
+  currentPage.children[seq] = {};
+  currentPage.children[seq].name = comp.name;
+  currentPage.children[seq].property = {};
   Object.keys(comp.property).forEach(function (propertyName) {
     // console.log(propertyName);
     let propertyValue;
@@ -49,19 +55,15 @@ function createComponent(name) {
     } else {
       propertyValue = property;
     }
-    projectData.pages[projectData.activePage].component[id].property[
-      propertyName
-    ] = propertyValue;
+    currentPage.children[seq].property[propertyName] = propertyValue;
   });
 
-  // console.log(projectData.pages[projectData.activePage].component[id]);
+  // console.log(currentPage.children[seq]);
 
   element = comp.render.create();
   element.setAttribute("data-id", id);
   element.setAttribute("class", "component");
-  comp.render.update.bind(
-    projectData.pages[projectData.activePage].component[id]
-  )(element);
+  comp.render.update.bind(currentPage.children[seq])(element);
 
   svgSketch.appendChild(element);
 
@@ -104,17 +106,16 @@ async function rerenderComponent() {
   removeAllComponent();
 
   let nameToId = [];
-  for (let ObjName of Object.keys(
-    projectData.pages[projectData.activePage].component
-  )) {
-    nameToId[
-      projectData.pages[projectData.activePage].component[ObjName].property.name
-    ] = ObjName;
+  const currentPage = getCurrentPage();
+
+  for (let i = 0; i < currentPage.children.length; i += 1) {
+    nameToId[currentPage.children[i].property.name] = i;
   }
 
   let arrNumber = [];
-  for (let id in projectData.pages[projectData.activePage].component) {
-    let name = projectData.pages[projectData.activePage].component[id].name;
+  for (let i = 0; i < currentPage.children.length; i += 1) {
+    let name = currentPage.children[i].name;
+    const id = `component-${i}`;
     // console.log(id, id.match(/[0-9]+/));
     arrNumber.push(+id.match(/[0-9]+/)[0]);
 
@@ -134,18 +135,13 @@ async function rerenderComponent() {
     element.setAttribute("data-id", id);
     element.setAttribute("class", "component");
 
-    if (
-      !projectData.pages[projectData.activePage].component[id].property.parent
-    ) {
+    if (!currentPage.children[i].property.parent) {
       svgSketch.appendChild(element);
     } else {
       $(svgSketch)
         .find(
-          `[data-id='${
-            nameToId[
-              projectData.pages[projectData.activePage].component[id].property
-                .parent
-            ]
+          `[data-id='component-${
+            nameToId[currentPage.children[i].property.parent]
           }']`
         )[0]
         .appendChild(element);
@@ -153,16 +149,12 @@ async function rerenderComponent() {
 
     if (element.nodeName == "IMG") {
       element.onload = () => {
-        comp.render.update.bind(
-          projectData.pages[projectData.activePage].component[id]
-        )(element);
+        comp.render.update.bind(currentPage.children[i])(element);
         element.onload = null;
       };
     }
 
-    comp.render.update.bind(
-      projectData.pages[projectData.activePage].component[id]
-    )(element);
+    comp.render.update.bind(currentPage.children[i])(element);
   }
 
   if (arrNumber.length > 0) {
@@ -175,7 +167,9 @@ async function rerenderComponent() {
 }
 
 function updateComponentPosition(id, x, y) {
-  let name = projectData.pages[projectData.activePage].component[id].name;
+  const currentPage = getCurrentPage();
+  const seq = parseInt(id.replace("component-", ""), 10);
+  let name = currentPage.children[seq].name;
 
   let comp;
 
@@ -192,16 +186,14 @@ function updateComponentPosition(id, x, y) {
 
   let element = $(svgSketch).find("[data-id='" + id + "']")[0];
   let box = element.getBBox();
-  comp.render.move.bind(
-    projectData.pages[projectData.activePage].component[id]
-  )(x, y, box.width, box.height);
-  comp.render.update.bind(
-    projectData.pages[projectData.activePage].component[id]
-  )(element);
+  comp.render.move.bind(currentPage.children[seq])(x, y, box.width, box.height);
+  comp.render.update.bind(currentPage.children[seq])(element);
 }
 
 function updateComponentProperty(id) {
-  let name = projectData.pages[projectData.activePage].component[id].name;
+  const currentPage = getCurrentPage();
+  const seq = parseInt(id.replace("component-", ""), 10);
+  let name = currentPage.children[seq].name;
 
   let comp;
 
@@ -216,9 +208,9 @@ function updateComponentProperty(id) {
     return;
   }
 
-  comp.render.update.bind(
-    projectData.pages[projectData.activePage].component[id]
-  )($(svgSketch).find("[data-id='" + id + "']")[0]);
+  comp.render.update.bind(currentPage.children[seq])(
+    $(svgSketch).find("[data-id='" + id + "']")[0]
+  );
 }
 
 function getAbstractComponent() {
@@ -228,7 +220,9 @@ function getAbstractComponent() {
 function updatePropertyTable() {
   let focus = $(".focus").last()[0];
   let id = focus.getAttribute("data-id");
-  let name = projectData.pages[projectData.activePage].component[id].name;
+  const currentPage = getCurrentPage();
+  const seq = parseInt(id.replace("component-", ""), 10);
+  let name = currentPage.children[seq].name;
 
   let comp;
 
@@ -259,9 +253,7 @@ function updatePropertyTable() {
           '<input type="text" class="property" data-property="' +
           propertyName +
           '" value="' +
-          projectData.pages[projectData.activePage].component[id].property[
-            propertyName
-          ] +
+          currentPage.children[seq].property[propertyName] +
           '">';
       } else if (property.type === "number") {
         html += `<input type="number" class="property${
@@ -269,18 +261,14 @@ function updatePropertyTable() {
             ? ` input-${property.inputOffset}-offset`
             : ""
         }" data-property="${propertyName}" value="${
-          projectData.pages[projectData.activePage].component[id].property[
-            propertyName
-          ]
+          currentPage.children[seq].property[propertyName]
         }">`;
       } else if (property.type === "color") {
         html +=
           '<input type="text" class="input-color property" data-property="' +
           propertyName +
           '" value="' +
-          projectData.pages[projectData.activePage].component[id].property[
-            propertyName
-          ] +
+          currentPage.children[seq].property[propertyName] +
           '">';
       } else if (property.type === "choice") {
         html +=
@@ -291,9 +279,7 @@ function updatePropertyTable() {
             property.choice[i].value +
             '"' +
             (property.choice[i].value ===
-            projectData.pages[projectData.activePage].component[id].property[
-              propertyName
-            ]
+            currentPage.children[seq].property[propertyName]
               ? " selected"
               : "") +
             ">" +
@@ -306,9 +292,7 @@ function updatePropertyTable() {
           '<button class="property file-select" data-property="' +
           propertyName +
           '" value="' +
-          projectData.pages[projectData.activePage].component[id].property[
-            propertyName
-          ] +
+          currentPage.children[seq].property[propertyName] +
           '">Choose</button>';
       } else if (property.type === "font") {
         html +=
@@ -318,10 +302,7 @@ function updatePropertyTable() {
             '<option value="' +
             item.name +
             '"' +
-            (item.name ===
-            projectData.pages[projectData.activePage].component[id].property[
-              propertyName
-            ]
+            (item.name === currentPage.children[seq].property[propertyName]
               ? " selected"
               : "") +
             ">" +
@@ -333,20 +314,14 @@ function updatePropertyTable() {
         html +=
           '<select class="property" data-property="' + propertyName + '">';
         html += `<option value="">N/A</option>`;
-        for (let item of Object.values(
-          projectData.pages[projectData.activePage].component
-        ).filter((item) => item.name === "Object")) {
-          if (
-            item.property.name ===
-            projectData.pages[projectData.activePage].component[id].property
-              .name
-          )
+        for (let item of Object.values(currentPage.children).filter(
+          (item) => item.name === "Object"
+        )) {
+          if (item.property.name === currentPage.children[seq].property.name)
             continue; // ?
           html += `<option value="${item.property.name}"${
             item.property.name ===
-            projectData.pages[projectData.activePage].component[id].property[
-              propertyName
-            ]
+            currentPage.children[seq].property[propertyName]
               ? " selected"
               : ""
           }>${item.property.name}</option>`;
@@ -357,7 +332,7 @@ function updatePropertyTable() {
       html += "</div>";
       html += "</li>";
     } else {
-      /* html += projectData.pages[projectData.activePage].component[id].property[propertyName]; */
+      /* html += currentPage.children[seq].property[propertyName]; */
     }
   });
 
@@ -375,8 +350,10 @@ function updatePropertyTable() {
 
     let focus = $(".focus")[0];
     let id = focus.getAttribute("data-id");
+    const currentPage = getCurrentPage();
+    const seq = parseInt(id.replace("component-", ""), 10);
 
-    let name = projectData.pages[projectData.activePage].component[id].name;
+    let name = currentPage.children[seq].name;
 
     let comp;
 
@@ -399,9 +376,7 @@ function updatePropertyTable() {
         if (typeof property.min !== "function") {
           min = property.min;
         } else {
-          min = property.min.bind(
-            projectData.pages[projectData.activePage].component[id]
-          )();
+          min = property.min.bind(currentPage.children[seq])();
         }
         if (propertyValue < min) {
           alert("Error, Minimum value of this property is " + min);
@@ -414,9 +389,7 @@ function updatePropertyTable() {
         if (typeof property.max !== "function") {
           max = property.max;
         } else {
-          max = property.max.bind(
-            projectData.pages[projectData.activePage].component[id]
-          )();
+          max = property.max.bind(currentPage.children[seq])();
         }
         if (propertyValue > max) {
           alert("Error, Maximum value of this property is " + max);
@@ -424,71 +397,46 @@ function updatePropertyTable() {
           return;
         }
       }
-      projectData.pages[projectData.activePage].component[id].property[
-        propertyName
-      ] = propertyValue;
+      currentPage.children[seq].property[propertyName] = propertyValue;
     } else if (property.type === "choice") {
       if (typeof comp.property[propertyName].choice[0].value === "number") {
-        projectData.pages[projectData.activePage].component[id].property[
-          propertyName
-        ] = +propertyValue;
+        currentPage.children[seq].property[propertyName] = +propertyValue;
       } else {
-        projectData.pages[projectData.activePage].component[id].property[
-          propertyName
-        ] = propertyValue;
+        currentPage.children[seq].property[propertyName] = propertyValue;
       }
     } else if (property.type === "text") {
       if (typeof property.pattern === "object") {
         if (property.pattern.test(propertyValue) === false) {
           alert("Error, Value not match");
-          e.target.value =
-            projectData.pages[projectData.activePage].component[id].property[
-              propertyName
-            ];
+          e.target.value = currentPage.children[seq].property[propertyName];
           return;
         }
       }
       /*       if (typeof property.validate !== "undefined") {
         if (property.validate === "font") {
-          propertyValue = textFilter(propertyValue, getFontFromName(projectData.pages[projectData.activePage].component[id].property.font).range);
+          propertyValue = textFilter(propertyValue, getFontFromName(currentPage.children[seq].property.font).range);
         }
       } */
-      projectData.pages[projectData.activePage].component[id].property[
-        propertyName
-      ] = propertyValue;
+      currentPage.children[seq].property[propertyName] = propertyValue;
     } else if (property.type === "color") {
       if (/^#[0-9a-fA-F]{6}$/.test(propertyValue) === false) {
         alert("Error, Value not match of #RGB");
-        e.target.value =
-          projectData.pages[projectData.activePage].component[id].property[
-            propertyName
-          ];
+        e.target.value = currentPage.children[seq].property[propertyName];
         return;
       }
-      projectData.pages[projectData.activePage].component[id].property[
-        propertyName
-      ] = propertyValue;
+      currentPage.children[seq].property[propertyName] = propertyValue;
     } else if (property.type === "file") {
-      projectData.pages[projectData.activePage].component[id].property[
-        propertyName
-      ] = propertyValue;
+      currentPage.children[seq].property[propertyName] = propertyValue;
     } else if (property.type === "font") {
-      projectData.pages[projectData.activePage].component[id].property[
-        propertyName
-      ] = propertyValue;
+      currentPage.children[seq].property[propertyName] = propertyValue;
     } else if (property.type === "parent") {
       let newParent = false;
       if (propertyValue === "") {
         newParent = svgSketch;
       } else {
-        for (let objId of Object.keys(
-          projectData.pages[projectData.activePage].component
-        )) {
-          if (
-            projectData.pages[projectData.activePage].component[objId].property
-              .name === propertyValue
-          ) {
-            newParent = $(svgSketch).find(`[data-id='${objId}'`)[0];
+        for (let i = 0; i < currentPage.children.length; i += 1) {
+          if (currentPage.children[i].property.name === propertyValue) {
+            newParent = $(svgSketch).find(`[data-id='component-${i}'`)[0];
             break;
           }
         }
@@ -496,9 +444,7 @@ function updatePropertyTable() {
       if (newParent) {
         try {
           newParent.appendChild(focus);
-          projectData.pages[projectData.activePage].component[id].property[
-            propertyName
-          ] = propertyValue;
+          currentPage.children[seq].property[propertyName] = propertyValue;
         } catch (msg) {
           alert("Error, loop parent");
         }
@@ -506,9 +452,7 @@ function updatePropertyTable() {
     }
 
     if (typeof property.change === "function") {
-      await property.change.bind(
-        projectData.pages[projectData.activePage].component[id]
-      )();
+      await property.change.bind(currentPage.children[seq])();
       updatePropertyTable();
     }
 
@@ -540,23 +484,20 @@ async function buildComponentsGetCode(simulator, output_path) {
     "LV_GRAD_DIR_VER",
   ];
 
+  const currentPage = getCurrentPage();
   code += `lv_obj_set_style_local_bg_color(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x${projectData.pages[
     projectData.activePage
-  ].background.main_color.substring(1)}));\n`;
+  ].options.main_color.substring(1)}));\n`;
   code += `lv_obj_set_style_local_bg_grad_color(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x${projectData.pages[
     projectData.activePage
-  ].background.grad_color.substring(1)}));\n`;
+  ].options.grad_color.substring(1)}));\n`;
   code += `lv_obj_set_style_local_bg_grad_dir(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, ${
-    indexGradDir2Var[
-      +projectData.pages[projectData.activePage].background.grad_dir
-    ]
+    indexGradDir2Var[+currentPage.options.grad_dir]
   });\n`;
   code += "\n";
 
-  for (const id of Object.keys(
-    projectData.pages[projectData.activePage].component
-  )) {
-    let name = projectData.pages[projectData.activePage].component[id].name;
+  for (let i = 0; i < currentPage.children.length; i += 1) {
+    let name = currentPage.children[i].name;
 
     let comp;
 
@@ -570,28 +511,22 @@ async function buildComponentsGetCode(simulator, output_path) {
       return;
     }
 
-    let compCode = await comp.build.bind(
-      projectData.pages[projectData.activePage].component[id]
-    )(simulator, projectData.pages[projectData.activePage].name, output_path);
+    let compCode = await comp.build.bind(currentPage.children[i])(
+      simulator,
+      currentPage.name,
+      output_path
+    );
 
-    code += `/* ========== ${
-      projectData.pages[projectData.activePage].component[id].property.name
-    } ========== */\n`;
+    code += `/* ========== ${currentPage.children[i].property.name} ========== */\n`;
     code += typeof compCode === "object" ? compCode.content : compCode;
-    code += `/* ====== END of ${
-      projectData.pages[projectData.activePage].component[id].property.name
-    } ====== */\n`;
+    code += `/* ====== END of ${currentPage.children[i].property.name} ====== */\n`;
     code += "\n";
 
     if (typeof compCode === "object") {
       if (compCode.header.length > 0) {
-        header += `/* ========== ${
-          projectData.pages[projectData.activePage].component[id].property.name
-        } header ========== */\n`;
+        header += `/* ========== ${currentPage.children[i].property.name} header ========== */\n`;
         header += compCode.header;
-        header += `/* ====== END of ${
-          projectData.pages[projectData.activePage].component[id].property.name
-        } header ====== */\n`;
+        header += `/* ====== END of ${currentPage.children[i].property.name} header ====== */\n`;
         header += "\n";
       }
     }
