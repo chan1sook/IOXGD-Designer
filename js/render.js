@@ -11,32 +11,27 @@ function addComponent(comp) {
   abstractComponentList.push(comp);
 }
 
-function createComponent(name) {
-  let comp, element, id;
+function createComponent(type) {
+  const templateComponent = abstractComponentList.find(
+    (ele) => ele.type === type
+  );
 
-  abstractComponentList.forEach(function (element) {
-    if (element.name === name) {
-      comp = element;
-    }
-  });
-  if (typeof comp === "undefined") {
-    alert("Error!, not found " + name);
+  if (typeof templateComponent === "undefined") {
+    alert("Error!, not found " + type);
     return;
   }
 
-  id = "component-" + componentCount;
-  const seq = componentCount;
-  componentCount += 1;
-
   const currentPage = getCurrentPage();
+  const newComponentData = {
+    name: templateComponent.name,
+    type: templateComponent.type,
+    property: {},
+  };
+
   // console.log(comp);
-  currentPage.children[seq] = {};
-  currentPage.children[seq].name = comp.name;
-  currentPage.children[seq].property = {};
-  Object.keys(comp.property).forEach(function (propertyName) {
-    // console.log(propertyName);
+  for (const propertyName of Object.keys(templateComponent.property)) {
     let propertyValue;
-    let property = comp.property[propertyName];
+    let property = templateComponent.property[propertyName];
     if (typeof property === "object") {
       if (typeof property.default === "undefined") {
         if (property.type === "font") {
@@ -52,17 +47,16 @@ function createComponent(name) {
     } else {
       propertyValue = property;
     }
-    currentPage.children[seq].property[propertyName] = propertyValue;
-  });
+    newComponentData.property[propertyName] = propertyValue;
+  }
 
-  // console.log(currentPage.children[seq]);
+  currentPage.children.push(newComponentData);
 
-  element = comp.render.create();
-  element.setAttribute("data-id", id);
-  element.setAttribute("class", "component");
-  comp.render.update.bind(currentPage.children[seq])(element);
-
-  svgSketch.appendChild(element);
+  const elementDOM = templateComponent.render.create();
+  elementDOM.setAttribute("data-name", newComponentData.property.name);
+  elementDOM.setAttribute("class", "component");
+  templateComponent.render.update.bind(newComponentData)(elementDOM);
+  svgSketch.appendChild(elementDOM);
 
   appEventEmitter.emit("updateProjectTree");
   reconfigDraggable();
@@ -89,52 +83,51 @@ async function rerenderComponent() {
   }
 
   let arrNumber = [];
+
   for (let i = 0; i < currentPage.children.length; i += 1) {
-    let name = currentPage.children[i].name;
-    const id = `component-${i}`;
-    // console.log(id, id.match(/[0-9]+/));
-    arrNumber.push(+id.match(/[0-9]+/)[0]);
+    const componentData = currentPage.children[i];
+    const type = componentData.type;
 
-    let comp, element;
+    arrNumber.push(i);
 
-    abstractComponentList.forEach(function (element) {
-      if (element.name === name) {
-        comp = element;
-      }
-    });
-    if (typeof comp === "undefined") {
-      alert("Error!, not found " + name);
+    const templateComponent = abstractComponentList.find(
+      (ele) => ele.type === type
+    );
+    if (typeof templateComponent === "undefined") {
+      alert("Error!, not found " + type);
       return;
     }
 
-    element = comp.render.create();
-    element.setAttribute("data-id", id);
-    element.setAttribute("class", "component");
+    const componentDOM = templateComponent.render.create();
+    componentDOM.setAttribute("data-name", componentData.property.name);
+    componentDOM.setAttribute("class", "component");
 
-    if (!currentPage.children[i].property.parent) {
-      svgSketch.appendChild(element);
+    if (!componentData.property.parent) {
+      svgSketch.appendChild(componentDOM);
     } else {
-      $(svgSketch)
-        .find(
-          `[data-id='component-${
-            nameToId[currentPage.children[i].property.parent]
-          }']`
-        )[0]
-        .appendChild(element);
+      const parent = svgSketch.querySelector(
+        `[data-name='${componentData.property.name}']`
+      );
+      if (parent) {
+        parent.appendChild(componentDOM);
+      }
     }
 
-    if (element.nodeName == "IMG") {
-      element.onload = () => {
-        comp.render.update.bind(currentPage.children[i])(element);
-        element.onload = null;
-      };
+    if (componentDOM.nodeName == "IMG") {
+      componentDOM.addEventListener(
+        "load",
+        () => {
+          templateComponent.render.update.bind(componentData)(componentDOM);
+        },
+        { once: true }
+      );
     }
 
-    comp.render.update.bind(currentPage.children[i])(element);
+    templateComponent.render.update.bind(componentData)(componentDOM);
   }
 
   if (arrNumber.length > 0) {
-    componentCount = Math.max.apply(null, arrNumber) + 1;
+    componentCount = Math.max(...arrNumber) + 1;
   } else {
     componentCount = 0;
   }
@@ -142,50 +135,27 @@ async function rerenderComponent() {
   reconfigDraggable();
 }
 
-function updateComponentPosition(id, x, y) {
+function updateComponentProperty(name) {
   const currentPage = getCurrentPage();
-  const seq = parseInt(id.replace("component-", ""), 10);
-  let name = currentPage.children[seq].name;
-
-  let comp;
-
-  // Find component name in list
-  abstractComponentList.forEach(function (element) {
-    if (element.name === name) {
-      comp = element;
-    }
-  });
-  if (typeof comp === "undefined") {
-    alert("Error!, not found " + name);
+  const currentComponent = currentPage.children.find(
+    (ele) => ele.property.name === name
+  );
+  if (!currentComponent) {
     return;
   }
 
-  let element = $(svgSketch).find("[data-id='" + id + "']")[0];
-  let box = element.getBBox();
-  comp.render.move.bind(currentPage.children[seq])(x, y, box.width, box.height);
-  comp.render.update.bind(currentPage.children[seq])(element);
-}
+  const type = currentComponent.type;
 
-function updateComponentProperty(id) {
-  const currentPage = getCurrentPage();
-  const seq = parseInt(id.replace("component-", ""), 10);
-  let name = currentPage.children[seq].name;
-
-  let comp;
-
-  // Find component name in list
-  abstractComponentList.forEach(function (element) {
-    if (element.name === name) {
-      comp = element;
-    }
-  });
-  if (typeof comp === "undefined") {
-    alert("Error!, not found " + name);
+  const templateComponent = abstractComponentList.find(
+    (ele) => ele.type === type
+  );
+  if (typeof templateComponent === "undefined") {
+    alert("Error!, not found " + type);
     return;
   }
 
-  comp.render.update.bind(currentPage.children[seq])(
-    $(svgSketch).find("[data-id='" + id + "']")[0]
+  templateComponent.render.update.bind(currentComponent)(
+    svgSketch.querySelector(`[data-name='${name}']`)
   );
 }
 
@@ -194,29 +164,34 @@ function getAbstractComponent() {
 }
 
 function updatePropertyTable() {
-  let focus = $(".focus").last()[0];
-  let id = focus.getAttribute("data-id");
+  const focusDOM = document.getElementsByClassName("focus").item(0);
+  if (!focusDOM) {
+    return;
+  }
+
+  const name = focusDOM.dataset["name"];
   const currentPage = getCurrentPage();
-  const seq = parseInt(id.replace("component-", ""), 10);
-  let name = currentPage.children[seq].name;
+  const currentComponent = currentPage.children.find(
+    (ele) => ele.property.name === name
+  );
+  if (!currentComponent) {
+    return;
+  }
 
-  let comp;
-
-  abstractComponentList.forEach(function (element) {
-    if (element.name === name) {
-      comp = element;
-    }
-  });
-  if (typeof comp === "undefined") {
-    alert("Error!, not found " + name);
+  const type = currentComponent.type;
+  const templateComponent = abstractComponentList.find(
+    (ele) => ele.type === type
+  );
+  if (typeof templateComponent === "undefined") {
+    alert("Error!, not found " + type);
     return;
   }
 
   $(".property").unbind();
 
   var html = "";
-  Object.keys(comp.property).forEach(function (propertyName) {
-    let property = comp.property[propertyName];
+  for (const propertyName of Object.keys(templateComponent.property)) {
+    let property = templateComponent.property[propertyName];
     if (typeof property === "object") {
       html += "<li>";
       html += `<div class="label">${
@@ -229,7 +204,7 @@ function updatePropertyTable() {
           '<input type="text" class="property" data-property="' +
           propertyName +
           '" value="' +
-          currentPage.children[seq].property[propertyName] +
+          currentComponent.property[propertyName] +
           '">';
       } else if (property.type === "number") {
         html += `<input type="number" class="property${
@@ -237,14 +212,14 @@ function updatePropertyTable() {
             ? ` input-${property.inputOffset}-offset`
             : ""
         }" data-property="${propertyName}" value="${
-          currentPage.children[seq].property[propertyName]
+          currentComponent.property[propertyName]
         }">`;
       } else if (property.type === "color") {
         html +=
           '<input type="text" class="input-color property" data-property="' +
           propertyName +
           '" value="' +
-          currentPage.children[seq].property[propertyName] +
+          currentComponent.property[propertyName] +
           '">';
       } else if (property.type === "choice") {
         html +=
@@ -255,7 +230,7 @@ function updatePropertyTable() {
             property.choice[i].value +
             '"' +
             (property.choice[i].value ===
-            currentPage.children[seq].property[propertyName]
+            currentComponent.property[propertyName]
               ? " selected"
               : "") +
             ">" +
@@ -268,7 +243,7 @@ function updatePropertyTable() {
           '<button class="property file-select" data-property="' +
           propertyName +
           '" value="' +
-          currentPage.children[seq].property[propertyName] +
+          currentComponent.property[propertyName] +
           '">Choose</button>';
       } else if (property.type === "font") {
         html +=
@@ -278,7 +253,7 @@ function updatePropertyTable() {
             '<option value="' +
             item.name +
             '"' +
-            (item.name === currentPage.children[seq].property[propertyName]
+            (item.name === currentComponent.property[propertyName]
               ? " selected"
               : "") +
             ">" +
@@ -293,11 +268,9 @@ function updatePropertyTable() {
         for (let item of Object.values(currentPage.children).filter(
           (item) => item.name === "Object"
         )) {
-          if (item.property.name === currentPage.children[seq].property.name)
-            continue; // ?
+          if (item.property.name === currentComponent.property.name) continue; // ?
           html += `<option value="${item.property.name}"${
-            item.property.name ===
-            currentPage.children[seq].property[propertyName]
+            item.property.name === currentComponent.property[propertyName]
               ? " selected"
               : ""
           }>${item.property.name}</option>`;
@@ -307,10 +280,8 @@ function updatePropertyTable() {
 
       html += "</div>";
       html += "</li>";
-    } else {
-      /* html += currentPage.children[seq].property[propertyName]; */
     }
-  });
+  }
 
   $("#property-box").html(html);
 
@@ -324,27 +295,31 @@ function updatePropertyTable() {
     let propertyName = e.target.getAttribute("data-property");
     let propertyValue = e.target.value;
 
-    let focus = $(".focus")[0];
-    let id = focus.getAttribute("data-id");
-    const currentPage = getCurrentPage();
-    const seq = parseInt(id.replace("component-", ""), 10);
-
-    let name = currentPage.children[seq].name;
-
-    let comp;
-
-    abstractComponentList.forEach(function (element) {
-      if (element.name === name) {
-        comp = element;
-      }
-    });
-
-    if (typeof comp === "undefined") {
-      alert("Error!, not found " + name);
+    const focusDOM = document.getElementsByClassName("focus").item(0);
+    if (!focusDOM) {
       return;
     }
 
-    let property = comp.property[propertyName];
+    const name = focusDOM.dataset["name"];
+    const currentPage = getCurrentPage();
+    const currentComponent = currentPage.children.find(
+      (ele) => ele.property.name === name
+    );
+    if (!currentComponent) {
+      return;
+    }
+
+    const type = currentComponent.type;
+
+    const templateComponent = abstractComponentList.find(
+      (ele) => ele.type === type
+    );
+    if (typeof templateComponent === "undefined") {
+      alert("Error!, not found " + type);
+      return;
+    }
+
+    let property = templateComponent.property[propertyName];
     if (property.type === "number") {
       propertyValue = +propertyValue;
       if (typeof property.min !== "undefined") {
@@ -352,7 +327,7 @@ function updatePropertyTable() {
         if (typeof property.min !== "function") {
           min = property.min;
         } else {
-          min = property.min.bind(currentPage.children[seq])();
+          min = property.min.bind(currentComponent)();
         }
         if (propertyValue < min) {
           alert("Error, Minimum value of this property is " + min);
@@ -365,7 +340,7 @@ function updatePropertyTable() {
         if (typeof property.max !== "function") {
           max = property.max;
         } else {
-          max = property.max.bind(currentPage.children[seq])();
+          max = property.max.bind(currentComponent)();
         }
         if (propertyValue > max) {
           alert("Error, Maximum value of this property is " + max);
@@ -373,61 +348,68 @@ function updatePropertyTable() {
           return;
         }
       }
-      currentPage.children[seq].property[propertyName] = propertyValue;
+      currentComponent.property[propertyName] = propertyValue;
     } else if (property.type === "choice") {
-      if (typeof comp.property[propertyName].choice[0].value === "number") {
-        currentPage.children[seq].property[propertyName] = +propertyValue;
+      if (
+        typeof templateComponent.property[propertyName].choice[0].value ===
+        "number"
+      ) {
+        currentComponent.property[propertyName] = +propertyValue;
       } else {
-        currentPage.children[seq].property[propertyName] = propertyValue;
+        currentComponent.property[propertyName] = propertyValue;
       }
     } else if (property.type === "text") {
       if (typeof property.pattern === "object") {
         if (property.pattern.test(propertyValue) === false) {
           alert("Error, Value not match");
-          e.target.value = currentPage.children[seq].property[propertyName];
+          e.target.value = currentComponent.property[propertyName];
           return;
         }
       }
-      currentPage.children[seq].property[propertyName] = propertyValue;
+      currentComponent.property[propertyName] = propertyValue;
     } else if (property.type === "color") {
       if (/^#[0-9a-fA-F]{6}$/.test(propertyValue) === false) {
         alert("Error, Value not match of #RGB");
-        e.target.value = currentPage.children[seq].property[propertyName];
+        e.target.value = currentComponent.property[propertyName];
         return;
       }
-      currentPage.children[seq].property[propertyName] = propertyValue;
+      currentComponent.property[propertyName] = propertyValue;
     } else if (property.type === "file") {
-      currentPage.children[seq].property[propertyName] = propertyValue;
+      currentComponent.property[propertyName] = propertyValue;
     } else if (property.type === "font") {
-      currentPage.children[seq].property[propertyName] = propertyValue;
+      currentComponent.property[propertyName] = propertyValue;
     } else if (property.type === "parent") {
       let newParent = false;
       if (propertyValue === "") {
         newParent = svgSketch;
       } else {
         for (let i = 0; i < currentPage.children.length; i += 1) {
-          if (currentPage.children[i].property.name === propertyValue) {
-            newParent = $(svgSketch).find(`[data-id='component-${i}'`)[0];
+          const componentData = currentPage.children[i];
+          if (componentData.property.name === propertyValue) {
+            newParent = svgSketch.querySelector(
+              `[data-name='${propertyValue}'`
+            );
             break;
           }
         }
       }
       if (newParent) {
         try {
-          newParent.appendChild(focus);
-          currentPage.children[seq].property[propertyName] = propertyValue;
+          newParent.appendChild(focusDOM);
+          currentComponent.property[propertyName] = propertyValue;
         } catch (msg) {
+          console.error(msg);
           alert("Error, loop parent");
         }
       }
     }
 
     if (typeof property.change === "function") {
-      await property.change.bind(currentPage.children[seq])();
+      await property.change.bind(currentComponent)();
       updatePropertyTable();
     }
 
-    updateComponentProperty(id);
+    updateComponentProperty(name);
     updateComponentFrame();
   });
 

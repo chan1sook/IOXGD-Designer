@@ -1,5 +1,6 @@
 addComponent({
   name: "Slider",
+  type: "Slider",
   icon: '<i class="fas fa-sliders-h"></i>',
   property: {
     name: {

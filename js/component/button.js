@@ -1,5 +1,6 @@
 addComponent({
   name: "Button",
+  type: "Button",
   icon: '<i class="fas fa-stop"></i>',
   property: {
     name: {

@@ -1,18 +1,19 @@
 addComponent({
   name: "Image",
+  type: "Image",
   icon: '<i class="far fa-image"></i>',
   property: {
     name: {
       label: "Name",
       type: "text",
       pattern: /^\w+$/,
-      default: function() {
+      default: function () {
         return objectNameGen("img");
-      }
+      },
     },
     parent: {
       label: "Parent",
-      type: "parent"
+      type: "parent",
     },
     hidden: {
       label: "Hidden",
@@ -20,14 +21,14 @@ addComponent({
       choice: [
         {
           label: "Show",
-          value: 1
+          value: 1,
         },
         {
           label: "Hides",
-          value: 0
+          value: 0,
         },
       ],
-      default: 1
+      default: 1,
     },
     define: {
       label: "Definition",
@@ -35,14 +36,14 @@ addComponent({
       choice: [
         {
           label: "Local",
-          value: 0
+          value: 0,
         },
         {
           label: "Global",
-          value: 1
+          value: 1,
         },
       ],
-      default: 0
+      default: 0,
     },
     alignX: {
       label: "Align X",
@@ -50,18 +51,18 @@ addComponent({
       choice: [
         {
           label: "Left",
-          value: 0
+          value: 0,
         },
         {
           label: "Center",
-          value: 1
+          value: 1,
         },
         {
           label: "Right",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     alignY: {
       label: "Align Y",
@@ -69,35 +70,35 @@ addComponent({
       choice: [
         {
           label: "Top",
-          value: 0
+          value: 0,
         },
         {
           label: "Mid",
-          value: 1
+          value: 1,
         },
         {
           label: "Bottom",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     x: {
       label: "X offset",
       type: "number",
       default: 0,
-      inputOffset: 'x'
+      inputOffset: "x",
     },
     y: {
       label: "Y offset",
       type: "number",
       default: 0,
-      inputOffset: 'y'
+      inputOffset: "y",
     },
     src: {
       label: "Src",
       type: "file",
-      default: "./image/noimage.png"
+      default: "./image/noimage.png",
     },
     storage: {
       label: "Storage",
@@ -105,14 +106,14 @@ addComponent({
       choice: [
         {
           label: "Flash",
-          value: 0
+          value: 0,
         },
         {
           label: "MicroSD Card",
-          value: 1
+          value: 1,
         },
       ],
-      default: 0
+      default: 0,
     },
     angle: {
       label: "Rotation Angle",
@@ -121,7 +122,7 @@ addComponent({
     },
   },
   render: {
-    create: function(id) {
+    create: function (id) {
       let img = document.createElement("img");
       img.setAttribute("draggable", false);
       return img;
@@ -137,20 +138,20 @@ addComponent({
       this.property.x = Math.round(this.property.x);
       this.property.y = Math.round(this.property.y);
     }, */
-    frame: function() {
+    frame: function () {
       return [];
     },
-    update: function(element) {
-      $(element).css({ 
-        position: 'absolute',
-        transform: `rotate(${this.property.angle}deg)`
+    update: function (element) {
+      $(element).css({
+        position: "absolute",
+        transform: `rotate(${this.property.angle}deg)`,
       });
-      $(element).attr("src", this.property.src)
+      $(element).attr("src", this.property.src);
 
       updatePos.bind(this)(element);
     },
   },
-  build: async function(simulator, pagename, output_path) {
+  build: async function (simulator, pagename, output_path) {
     let code = "";
     let header = "";
 
@@ -158,26 +159,42 @@ addComponent({
     let objName = `${this.property.name}`;
 
     // Image object
-    if (this.property.define == 0) { // define local
+    if (this.property.define == 0) {
+      // define local
       code += `lv_obj_t* ${objName};\n`;
       code += `\n`;
     } else {
       header += `lv_obj_t* ${objName};\n`;
     }
 
-    code += `${objName} = lv_img_create(${!this.property.parent ? 'lv_scr_act()' : this.property.parent}, NULL);\n`;
-    let imgObj = `img_${path.basename(this.property.src).replace(/\-/g,'_').split('.').slice(0, -1).join('_')}`;
-    if (this.property.storage == 0 || simulator) { // Flash or Simulator
+    code += `${objName} = lv_img_create(${
+      !this.property.parent ? "lv_scr_act()" : this.property.parent
+    }, NULL);\n`;
+    let imgObj = `img_${path
+      .basename(this.property.src)
+      .replace(/\-/g, "_")
+      .split(".")
+      .slice(0, -1)
+      .join("_")}`;
+    if (this.property.storage == 0 || simulator) {
+      // Flash or Simulator
       header += `LV_IMG_DECLARE(${imgObj});\n`;
       code += `lv_img_set_src(${objName}, &${imgObj});\n`;
-    } else if (this.property.storage == 1) { // MicroSD Card
-      code += `lv_img_set_src(${objName}, "S:/path/to/${path.basename(this.property.src)}"); // TODO\n`;
+    } else if (this.property.storage == 1) {
+      // MicroSD Card
+      code += `lv_img_set_src(${objName}, "S:/path/to/${path.basename(
+        this.property.src
+      )}"); // TODO\n`;
     }
     code += `lv_img_set_angle(${objName}, ${this.property.angle * 10});\n`;
-    code += `lv_obj_align(${objName}, NULL, ${propertyToAlign(this.property)}, ${this.property.x}, ${this.property.y});\n`;
+    code += `lv_obj_align(${objName}, NULL, ${propertyToAlign(
+      this.property
+    )}, ${this.property.x}, ${this.property.y});\n`;
     code += `\n`;
 
-    code += `lv_obj_set_hidden(${objName}, ${this.property.hidden === 0 ? 'true' : 'false'});`;
+    code += `lv_obj_set_hidden(${objName}, ${
+      this.property.hidden === 0 ? "true" : "false"
+    });`;
     code += `\n`;
 
     /*
@@ -187,10 +204,11 @@ addComponent({
     }
     */
 
-    if (this.property.storage == 0 || simulator) { // Flash or Simulator -> Convart file
+    if (this.property.storage == 0 || simulator) {
+      // Flash or Simulator -> Convart file
       await img_covt(this.property.src, imgObj, output_path);
     }
 
     return { header, content: code };
-  }
+  },
 });

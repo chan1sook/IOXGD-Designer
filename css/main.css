@@ -132,12 +132,9 @@ section.space > .box-sketch {
   overflow: auto;
   height: 100%;
 }
-/* 
-#project-tree > div {
-  cursor: pointer;
-} */
 
 #project-tree > div[data-level="1"] {
+  cursor: pointer;
   margin-left: 1em;
 }
 

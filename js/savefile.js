@@ -4,7 +4,7 @@ const { devLog, devError } = require("./loggers.js");
 const LASTEST_VERSION = 2;
 
 /**
- * TODO: Init zoom module
+ * TODO: Init savefile module
  * @param {EventEmitter} eventEmitter
  */
 function init(eventEmitter) {}
@@ -84,7 +84,10 @@ function _converPageData(pageData) {
 
   if (!Array.isArray(result.children)) {
     if (_isObject(result.component)) {
-      result.children = Object.values(result.component);
+      result.children = Object.values({
+        type: result.component.type,
+        ...result.component,
+      });
     } else {
       result.children = [];
     }

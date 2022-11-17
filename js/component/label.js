@@ -1,5 +1,6 @@
 addComponent({
   name: "Label",
+  type: "Label",
   icon: '<i class="fas fa-font"></i>',
   property: {
     name: {

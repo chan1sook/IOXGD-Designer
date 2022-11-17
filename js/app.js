@@ -14,16 +14,15 @@ function updateComponentFrame() {
     let width = 0;
     let height = 0;
     const focusDOM = focusDOMs.item(0);
-    const id = focusDOM.getAttribute("data-id");
-    const seq = parseInt(id.replace("component-", ""), 10);
-
+    const componentName = focusDOM.dataset["name"];
     const currentPage = getCurrentPage();
-    const currentComponent = currentPage.children[seq];
-    let name = currentComponent.name;
-
-    let comp = abstractComponentList.find((ele) => ele.name === name);
+    const currentComponent = currentPage.children.find(
+      (ele) => ele.property.name === componentName
+    );
+    const type = currentComponent.type;
+    let comp = abstractComponentList.find((ele) => ele.type === type);
     if (typeof comp === "undefined") {
-      alert("Error!, not found " + name);
+      alert("Error!, not found " + type);
       return;
     }
 
@@ -45,28 +44,23 @@ function updateComponentFrame() {
       height = focusDOM.offsetHeight;
     }
 
-    if (typeof currentComponent.property.parent !== "undefined") {
-      if (currentComponent.property.parent !== "") {
-        let parentName = currentComponent.property.parent;
-        let nameToId = {};
-
-        for (let i = 0; i < currentPage.children.length; i += 1) {
-          nameToId[currentPage.children[i].property.name] = i;
+    if (
+      typeof currentComponent.property.parent !== "undefined" &&
+      currentComponent.property.parent !== ""
+    ) {
+      let parentName = currentComponent.property.parent;
+      while (parentName !== "") {
+        // loop find last parent
+        const parent = svgSketch.querySelector(`[data-name='${parentName}']`);
+        if (!parent) {
+          break;
         }
-
-        while (1) {
-          // loop find last parent
-          let parentId = nameToId[parentName];
-          let parent = $(svgSketch).find(
-            `[data-id='component-${parentId}']`
-          )[0];
-          x += parent.offsetLeft;
-          y += parent.offsetTop;
-          parentName = currentPage.children[parentId].property.parent || "";
-          if (parentName === "") {
-            break;
-          }
-        }
+        x += parent.offsetLeft;
+        y += parent.offsetTop;
+        const parentComponent = currentPage.children.find(
+          (ele) => ele.property.name === parentName
+        );
+        parentName = parentComponent.property.parent || "";
       }
     }
 
@@ -175,17 +169,20 @@ $(function () {
   document.onkeydown = function (e) {
     if (e.which === 46) {
       // Delete
-      let focus = $(".focus");
-      let id = focus.attr("data-id");
-      const seq = parseInt(id.replace("component-", ""), 10);
-      focus.remove();
-      delete getCurrentPage().children[seq];
+      const focusDOM = document.getElementsByClassName("focus").item(0);
+      if (focusDOM) {
+        const name = focusDOM.dataset["name"];
+        focus.remove();
+        getCurrentPage().children = getCurrentPage().children.filter(
+          (ele) => ele.property.name !== name
+        );
 
-      appEventEmitter.emit("updateProjectTree");
-      // Hide frame
-      updateComponentFrame();
+        appEventEmitter.emit("updateProjectTree");
+        // Hide frame
+        updateComponentFrame();
 
-      $("#property-box").html("");
+        $("#property-box").html("");
+      }
     } else if ($(":focus").length === 0 && e.which === 38) {
       // Up
       $(".input-y-offset")
@@ -213,7 +210,7 @@ $(function () {
   var html = "";
   let comps = getAbstractComponent();
   comps.forEach(function (element) {
-    html += `<li data-name="${element.name}">`;
+    html += `<li data-type="${element.type}">`;
     html += `<span class="icon">${element.icon}</span>`;
     html += `<span class="label">${element.name}</span>`;
     html += "</li>";
@@ -221,7 +218,7 @@ $(function () {
   $("#object-list").html(html);
 
   $("#object-list > li").click(function (e) {
-    createComponent($(this).attr("data-name"));
+    createComponent($(this).attr("data-type"));
   });
 
   // No focus
@@ -284,78 +281,69 @@ $(function () {
       if (e.keyCode === 17 || e.keyCode === 91) ctrlDown = false;
     });
 
-  let copyID = "";
+  let duplicateComponent = async (sourceName) => {
+    if (!sourceName) {
+      const focusDOM = document.getElementsByClassName("focus").item(0);
+      if (!focusDOM) {
+        return;
+      }
 
-  let duplicateComponent = async (sourceID) => {
-    if (!sourceID) sourceID = $(".focus").attr("data-id");
+      sourceName = focusDOM.dataset["name"];
+    }
 
-    const seq = parseInt(sourceID.replace("component-", ""), 10);
     const currentPage = getCurrentPage();
-    let sourceComponent = currentPage.children[seq];
-
+    let sourceComponent = currentPage.children.find(
+      (ele) => ele.property.name === sourceName
+    );
     if (!sourceComponent) {
       return;
     }
 
-    let comp = abstractComponentList.find(
-      (e) => e.name === sourceComponent.name
+    const templateComponent = abstractComponentList.find(
+      (e) => e.type === sourceComponent.type
     );
 
-    if (typeof comp === "undefined") {
-      alert("Error!, not found " + name);
+    if (typeof templateComponent === "undefined") {
+      alert("Error!, not found " + sourceComponent.type);
       return;
     }
 
     componentCount += 1;
-    let newID = `component-${componentCount}`;
-    const newSeq = componentCount;
 
-    currentPage.children[newSeq] = JSON.parse(JSON.stringify(sourceComponent));
-    currentPage.children[newSeq].property.name = comp.property.name.default();
-    currentPage.children[newSeq].property.x += 10;
-    currentPage.children[newSeq].property.y += 10;
+    const newComponentData = JSON.parse(JSON.stringify(sourceComponent));
+    newComponentData.property.name = templateComponent.property.name.default();
+    newComponentData.property.x += 10;
+    newComponentData.property.y += 10;
 
-    let element = comp.render.create();
-    element.setAttribute("data-id", newID);
-    element.setAttribute("class", "component");
+    currentPage.children.push(newComponentData);
+    const componentDOM = templateComponent.render.create();
+    componentDOM.setAttribute("data-name", newComponentData.property.name);
+    componentDOM.setAttribute("class", "component");
 
-    if (!currentPage.children[newSeq].property.parent) {
-      svgSketch.appendChild(element);
+    if (!newComponentData.property.parent) {
+      svgSketch.appendChild(componentDOM);
     } else {
-      let nameToId = {};
-      for (let i = 0; i < currentPage.children.length; i += 1) {
-        nameToId[currentPage.children[i].property.name] = i;
+      let parentName = newComponentData.property.parent;
+      const parent = svgSketch.querySelector(`[data-name='${parentName}']`);
+      if (parent) {
+        parent.appendChild(componentDOM);
       }
-
-      $(svgSketch)
-        .find(
-          `[data-id='component-${
-            nameToId[currentPage.children[newSeq].property.parent]
-          }']`
-        )[0]
-        .appendChild(element);
     }
 
-    comp.render.update.bind(currentPage.children[newSeq])(element);
+    templateComponent.render.update.bind(newComponentData)(componentDOM);
 
     reconfigDraggable();
 
-    $(`.component[data-id='${newID}']`).click().mousedown().mouseup();
-
-    copyID = newID;
+    componentDOM.click();
+    componentDOM.dispatchEvent(new Event("mousedown"));
+    componentDOM.dispatchEvent(new Event("mouseup"));
   };
 
   $(document).keydown((e) => {
     if (ctrlDown && e.keyCode === 68) {
       // Ctrl+D (D is 68)
       duplicateComponent();
-    } /*else if (ctrlDown && e.keyCode === 67) { // Ctrl+C (C is 67)
-      copyID = $(".focus").attr("data-id");
-    } else if (ctrlDown && e.keyCode === 86) { // Ctrl+V (C is 86)
-      if (copyID !== "") {
-        duplicateComponent(copyID);
-      }
-    } */
+    }
   });
 
   grid_size = 100;

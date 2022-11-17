@@ -1,5 +1,6 @@
 addComponent({
   name: "Chart",
+  type: "Chart",
   icon: '<i class="fas fa-chart-line"></i>',
   property: {
     name: {
@@ -8,11 +9,11 @@ addComponent({
       pattern: /^\w+$/,
       default: function () {
         return objectNameGen("chart");
-      }
+      },
     },
     parent: {
       label: "Parent",
-      type: "parent"
+      type: "parent",
     },
     hidden: {
       label: "Hidden",
@@ -20,14 +21,14 @@ addComponent({
       choice: [
         {
           label: "Show",
-          value: 1
+          value: 1,
         },
         {
           label: "Hides",
-          value: 0
+          value: 0,
         },
       ],
-      default: 1
+      default: 1,
     },
     define: {
       label: "Definition",
@@ -35,14 +36,14 @@ addComponent({
       choice: [
         {
           label: "Local",
-          value: 0
+          value: 0,
         },
         {
           label: "Global",
-          value: 1
+          value: 1,
         },
       ],
-      default: 0
+      default: 0,
     },
     alignX: {
       label: "Align X",
@@ -50,18 +51,18 @@ addComponent({
       choice: [
         {
           label: "Left",
-          value: 0
+          value: 0,
         },
         {
           label: "Center",
-          value: 1
+          value: 1,
         },
         {
           label: "Right",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     alignY: {
       label: "Align Y",
@@ -69,70 +70,70 @@ addComponent({
       choice: [
         {
           label: "Top",
-          value: 0
+          value: 0,
         },
         {
           label: "Mid",
-          value: 1
+          value: 1,
         },
         {
           label: "Bottom",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     x: {
       label: "X offset",
       type: "number",
       default: 0,
-      inputOffset: 'x'
+      inputOffset: "x",
     },
     y: {
       label: "Y offset",
       type: "number",
       default: 0,
-      inputOffset: 'y'
+      inputOffset: "y",
     },
     width: {
       label: "Width",
       type: "number",
-      default: 200
+      default: 200,
     },
     height: {
       label: "Height",
       type: "number",
-      default: 150
+      default: 150,
     },
     range_min: {
       label: "Range min",
       type: "number",
-      default: 0
+      default: 0,
     },
     range_max: {
       label: "Range max",
       type: "number",
-      default: 100
+      default: 100,
     },
     division_h: {
       label: "Division Horizontal",
       type: "number",
-      default: 3
+      default: 3,
     },
     division_v: {
       label: "Division Vertical",
       type: "number",
-      default: 5
+      default: 5,
     },
     main_color: {
       label: "Background Main color",
       type: "color",
-      default: "#FFFFFF"
+      default: "#FFFFFF",
     },
     grad_color: {
       label: "Background Gradient color",
       type: "color",
-      default: "#FFFFFF"
+      default: "#FFFFFF",
     },
     grad_dir: {
       label: "Background Gradient direction",
@@ -140,48 +141,48 @@ addComponent({
       choice: [
         {
           label: "None",
-          value: 0
+          value: 0,
         },
         {
           label: "Horizontal",
-          value: 1
+          value: 1,
         },
         {
           label: "Vertical",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     border_width: {
       label: "Border Width",
       type: "number",
-      default: 2
+      default: 2,
     },
     border_color: {
       label: "Border Color",
       type: "color",
-      default: "#EEEEEE"
+      default: "#EEEEEE",
     },
     radius: {
       label: "Corner radius",
       type: "number",
-      default: 6
+      default: 6,
     },
     padding: {
       label: "Padding",
       type: "number",
-      default: 10
+      default: 10,
     },
     grid_width: {
       label: "Grid Width",
       type: "number",
-      default: 1
+      default: 1,
     },
     grid_color: {
       label: "Grid Color",
       type: "color",
-      default: "#EEEEEE"
+      default: "#EEEEEE",
     },
     /*
     series_width: {
@@ -221,13 +222,18 @@ addComponent({
           padding: 0,
           margin: 0,
           position: "absolute",
-          top: `${this.property.padding + (i * ((this.property.height - (this.property.padding * 2)) / (this.property.division_h + 1)))}px`,
+          top: `${
+            this.property.padding +
+            i *
+              ((this.property.height - this.property.padding * 2) /
+                (this.property.division_h + 1))
+          }px`,
           left: this.property.padding,
           width: `calc(100% - ${this.property.padding * 2}px)`,
           height: "0px",
-          border: 'none',
-          'border-top': `${this.property.grid_width}px dashed ${this.property.grid_color}`,
-          position: 'absolute',
+          border: "none",
+          "border-top": `${this.property.grid_width}px dashed ${this.property.grid_color}`,
+          position: "absolute",
         });
         element.appendChild(line);
       }
@@ -238,11 +244,16 @@ addComponent({
           margin: 0,
           position: "absolute",
           top: this.property.padding,
-          left: `${this.property.padding + (i * ((this.property.width - (this.property.padding * 2)) / (this.property.division_v + 1)))}px`,
+          left: `${
+            this.property.padding +
+            i *
+              ((this.property.width - this.property.padding * 2) /
+                (this.property.division_v + 1))
+          }px`,
           width: "0px",
           height: `calc(100% - ${this.property.padding * 2}px)`,
-          border: 'none',
-          'border-left': `${this.property.grid_width}px dashed ${this.property.grid_color}`,
+          border: "none",
+          "border-left": `${this.property.grid_width}px dashed ${this.property.grid_color}`,
         });
         element.appendChild(line);
       }
@@ -259,8 +270,8 @@ addComponent({
         left: `${this.property.padding}px`,
         width: `calc(100% - ${this.property.padding * 2}px)`,
         height: "0px",
-        border: 'none',
-        'border-top': `${this.property.grid_width}px dashed ${this.property.grid_color}`,
+        border: "none",
+        "border-top": `${this.property.grid_width}px dashed ${this.property.grid_color}`,
       });
       element.appendChild(line);
 
@@ -274,8 +285,8 @@ addComponent({
         left: `${this.property.padding}px`,
         width: `calc(100% - ${this.property.padding * 2}px)`,
         height: "0px",
-        border: 'none',
-        'border-top': `${this.property.grid_width}px dashed ${this.property.grid_color}`,
+        border: "none",
+        "border-top": `${this.property.grid_width}px dashed ${this.property.grid_color}`,
       });
       element.appendChild(line);
 
@@ -289,8 +300,8 @@ addComponent({
         left: `${this.property.padding}px`,
         width: "0px",
         height: `calc(100% - ${this.property.padding * 2}px)`,
-        border: 'none',
-        'border-left': `${this.property.grid_width}px dashed ${this.property.grid_color}`,
+        border: "none",
+        "border-left": `${this.property.grid_width}px dashed ${this.property.grid_color}`,
       });
       element.appendChild(line);
 
@@ -304,15 +315,22 @@ addComponent({
         right: `${this.property.padding}px`,
         width: "0px",
         height: `calc(100% - ${this.property.padding * 2}px)`,
-        border: 'none',
-        'border-left': `${this.property.grid_width}px dashed ${this.property.grid_color}`,
+        border: "none",
+        "border-left": `${this.property.grid_width}px dashed ${this.property.grid_color}`,
       });
       element.appendChild(line);
 
       $(element).css({
         width: this.property.width,
         height: this.property.height,
-        background: +this.property.grad_dir === 0 ? this.property.main_color : `linear-gradient(${+this.property.grad_dir === 1 ? '90' : '180'}deg, ${this.property.main_color} 0%, ${this.property.grad_color} 100%)`,
+        background:
+          +this.property.grad_dir === 0
+            ? this.property.main_color
+            : `linear-gradient(${
+                +this.property.grad_dir === 1 ? "90" : "180"
+              }deg, ${this.property.main_color} 0%, ${
+                this.property.grad_color
+              } 100%)`,
         border: `${this.property.border_width}px solid ${this.property.border_color}`,
         "border-radius": `${this.property.radius}px`,
       });
@@ -321,7 +339,11 @@ addComponent({
     },
   },
   build: async function (simulator, pagename, output_path) {
-    let indexGradDir2Var = ['LV_GRAD_DIR_NONE', 'LV_GRAD_DIR_HOR', 'LV_GRAD_DIR_VER'];
+    let indexGradDir2Var = [
+      "LV_GRAD_DIR_NONE",
+      "LV_GRAD_DIR_HOR",
+      "LV_GRAD_DIR_VER",
+    ];
 
     let code = "";
     let header = "";
@@ -329,21 +351,51 @@ addComponent({
     // Button object
     header += `lv_obj_t* ${this.property.name};\n`;
 
-    code += `${this.property.name} = lv_chart_create(${!this.property.parent ? 'lv_scr_act()' : this.property.parent}, NULL);\n`;
+    code += `${this.property.name} = lv_chart_create(${
+      !this.property.parent ? "lv_scr_act()" : this.property.parent
+    }, NULL);\n`;
     code += `\n`;
 
-    code += `lv_obj_set_style_local_bg_color(${this.property.name}, LV_CHART_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.main_color.substring(1)}));\n`;
-    code += `lv_obj_set_style_local_bg_grad_color(${this.property.name}, LV_CHART_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.grad_color.substring(1)}));\n`;
-    code += `lv_obj_set_style_local_bg_grad_dir(${this.property.name}, LV_CHART_PART_BG, LV_STATE_DEFAULT, ${indexGradDir2Var[+this.property.grad_dir]});\n`;
+    code += `lv_obj_set_style_local_bg_color(${
+      this.property.name
+    }, LV_CHART_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.main_color.substring(
+      1
+    )}));\n`;
+    code += `lv_obj_set_style_local_bg_grad_color(${
+      this.property.name
+    }, LV_CHART_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.grad_color.substring(
+      1
+    )}));\n`;
+    code += `lv_obj_set_style_local_bg_grad_dir(${
+      this.property.name
+    }, LV_CHART_PART_BG, LV_STATE_DEFAULT, ${
+      indexGradDir2Var[+this.property.grad_dir]
+    });\n`;
     code += `lv_obj_set_style_local_radius(${this.property.name}, LV_CHART_PART_BG, LV_STATE_DEFAULT, ${this.property.radius});\n`;
-    code += `lv_obj_set_style_local_border_color(${this.property.name}, LV_CHART_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.border_color.substring(1)}));\n`;
+    code += `lv_obj_set_style_local_border_color(${
+      this.property.name
+    }, LV_CHART_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.border_color.substring(
+      1
+    )}));\n`;
     code += `lv_obj_set_style_local_border_width(${this.property.name}, LV_CHART_PART_BG, LV_STATE_DEFAULT, ${this.property.border_width});\n`;
     code += `\n`;
 
-    code += `lv_obj_set_style_local_line_color(${this.property.name}, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.grid_color.substring(1)}));\n`;
+    code += `lv_obj_set_style_local_line_color(${
+      this.property.name
+    }, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.grid_color.substring(
+      1
+    )}));\n`;
     code += `lv_obj_set_style_local_line_width(${this.property.name}, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, ${this.property.grid_width});\n`;
-    code += `lv_obj_set_style_local_line_dash_width(${this.property.name}, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, ${this.property.grid_width * 4});\n`;
-    code += `lv_obj_set_style_local_line_dash_gap(${this.property.name}, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, ${this.property.grid_width * 2});\n`;
+    code += `lv_obj_set_style_local_line_dash_width(${
+      this.property.name
+    }, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, ${
+      this.property.grid_width * 4
+    });\n`;
+    code += `lv_obj_set_style_local_line_dash_gap(${
+      this.property.name
+    }, LV_CHART_PART_SERIES_BG, LV_STATE_DEFAULT, ${
+      this.property.grid_width * 2
+    });\n`;
     code += `\n`;
 
     code += `lv_obj_set_style_local_pad_top(chart1, LV_CHART_PART_BG, LV_STATE_DEFAULT, ${this.property.padding});\n`;
@@ -353,14 +405,18 @@ addComponent({
     code += `\n`;
 
     code += `lv_obj_set_size(${this.property.name}, ${this.property.width}, ${this.property.height});\n`;
-    code += `lv_obj_align(${this.property.name}, NULL, ${propertyToAlign(this.property)}, ${this.property.x}, ${this.property.y});\n`;
+    code += `lv_obj_align(${this.property.name}, NULL, ${propertyToAlign(
+      this.property
+    )}, ${this.property.x}, ${this.property.y});\n`;
     code += `lv_chart_set_type(${this.property.name}, LV_CHART_TYPE_LINE);\n`;
     // code += `lv_chart_set_point_count(${this.property.name}, ${this.property.series_width});\n`;
     code += `lv_chart_set_div_line_count(${this.property.name}, ${this.property.division_h}, ${this.property.division_v});\n`;
     code += `lv_chart_set_range(${this.property.name}, ${this.property.range_min}, ${this.property.range_max});\n`;
     code += `\n`;
 
-    code += `lv_obj_set_hidden(${this.property.name}, ${this.property.hidden === 0 ? 'true' : 'false'});`;
+    code += `lv_obj_set_hidden(${this.property.name}, ${
+      this.property.hidden === 0 ? "true" : "false"
+    });`;
     code += `\n`;
 
     /*
@@ -397,11 +453,12 @@ addComponent({
 
     */
 
-    if (this.property.define == 0) { // define local
+    if (this.property.define == 0) {
+      // define local
       code = `${header}\n${code}`;
       header = "";
     }
 
     return { header, content: code };
-  }
+  },
 });
