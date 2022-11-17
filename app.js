@@ -1,6 +1,13 @@
+const { EventEmitter } = require("events");
 const { LASTEST_VERSION } = require("./js/savefile.js");
+const keyboardModule = require("./js/keyboard.js");
+const savefileModule = require("./js/savefile.js");
+const projectTreeModule = require("./js/project-tree.js");
 const menuModule = require("./js/menu.js");
+const fontModule = require("./js/font.js");
 const zoomModule = require("./js/zoom.js");
+
+const appEventEmitter = new EventEmitter();
 
 let projectData = {
   version: LASTEST_VERSION,
@@ -19,25 +26,20 @@ let projectData = {
     },
   ],
 };
-const keysDowns = new Map();
-
-document.addEventListener("keydown", (ev) => {
-  keysDowns.set(ev.key, true);
-});
-document.addEventListener("keyup", (ev) => {
-  keysDowns.set(ev.key, false);
-});
 
 document.addEventListener("DOMContentLoaded", () => {
-  menuModule.init(projectData);
-  zoomModule.init(keysDowns);
+  savefileModule.init(appEventEmitter);
+  keyboardModule.init(appEventEmitter);
+  projectTreeModule.init(appEventEmitter, projectData);
+  fontModule.init(appEventEmitter, projectData);
+  menuModule.init(appEventEmitter, projectData);
+  zoomModule.init(appEventEmitter);
 });
 
 function reconfigDraggable() {
   let element = $("#sketch > .component");
 
   element.off();
-
   element.bind("mousedown", function (event, ui) {
     // bring target to front
     $(".focus").removeClass("focus");

@@ -1,3 +1,7 @@
+function getCurrentPage() {
+  return projectData.pages[projectData.activePage];
+}
+
 let updatePos = function (element) {
   let left = 0;
   if (this.property.alignX == 0) {
@@ -44,10 +48,9 @@ let hexToRgbA = (hex, opa) => {
 
 let objectNameGen = (offset) => {
   let nextNumber = 1;
-  for (let component of Object.keys(
-    projectData.pages[projectData.activePage].component
-  )) {
-    component = projectData.pages[projectData.activePage].component[component];
+  const currentPage = getCurrentPage();
+  for (let i = 0; i < currentPage.children.length; i += 1) {
+    component = currentPage.children[i];
     if (typeof component.property.name !== "undefined") {
       if (component.property.name.indexOf(offset) === 0) {
         let number = parseInt(component.property.name.replace(/\D/g, ""));

@@ -3,9 +3,9 @@ function getCurrentPage() {
 }
 
 function updateComponentFrame() {
-  const componentFramesDOM = new Array(4)
-    .fill(undefined)
-    .map((_, i) => document.getElementById(`component-frame${i + 1}`));
+  const componentFramesDOM = Array.from(
+    document.getElementsByClassName("component-frame")
+  );
   const focusDOMs = document.getElementsByClassName("focus");
 
   if (focusDOMs.length > 0) {
@@ -71,24 +71,36 @@ function updateComponentFrame() {
     }
 
     // Top
-    componentFramesDOM[0].style.left = `${x - 1}px`;
-    componentFramesDOM[0].style.top = `${y - 1}px`;
-    componentFramesDOM[0].style.width = `${width + 2}px`;
+    const topFrameDom = componentFramesDOM.find((ele) =>
+      ele.classList.contains("top")
+    );
+    topFrameDom.style.left = `${x - 1}px`;
+    topFrameDom.style.top = `${y - 1}px`;
+    topFrameDom.style.width = `${width + 2}px`;
 
     // Right
-    componentFramesDOM[1].style.left = `${x + width}px`;
-    componentFramesDOM[1].style.top = `${y - 1}px`;
-    componentFramesDOM[1].style.height = `${height + 2}px`;
+    const rightFrameDom = componentFramesDOM.find((ele) =>
+      ele.classList.contains("right")
+    );
+    rightFrameDom.style.left = `${x + width}px`;
+    rightFrameDom.style.top = `${y - 1}px`;
+    rightFrameDom.style.height = `${height + 2}px`;
 
     // Bottom
-    componentFramesDOM[2].style.left = `${x - 1}px`;
-    componentFramesDOM[2].style.top = `${y + height}px`;
-    componentFramesDOM[2].style.width = `${width + 2}px`;
+    const bottomFrameDom = componentFramesDOM.find((ele) =>
+      ele.classList.contains("bottom")
+    );
+    bottomFrameDom.style.left = `${x - 1}px`;
+    bottomFrameDom.style.top = `${y + height}px`;
+    bottomFrameDom.style.width = `${width + 2}px`;
 
     // Left
-    componentFramesDOM[3].style.left = `${x - 1}px`;
-    componentFramesDOM[3].style.top = `${y - 1}px`;
-    componentFramesDOM[3].style.height = `${height + 2}px`;
+    const leftFrameDom = componentFramesDOM.find((ele) =>
+      ele.classList.contains("left")
+    );
+    leftFrameDom.style.left = `${x - 1}px`;
+    leftFrameDom.style.top = `${y - 1}px`;
+    leftFrameDom.style.height = `${height + 2}px`;
 
     for (const dom of componentFramesDOM) {
       dom.style.display = "block";
@@ -169,6 +181,7 @@ $(function () {
       focus.remove();
       delete getCurrentPage().children[seq];
 
+      appEventEmitter.emit("updateProjectTree");
       // Hide frame
       updateComponentFrame();
 

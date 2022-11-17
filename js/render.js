@@ -1,6 +1,3 @@
-const svgNS = "http://www.w3.org/2000/svg";
-const htmlNS = "http://www.w3.org/1999/xhtml";
-
 const svgSketch = document.getElementById("sketch");
 
 var componentCount = 0;
@@ -67,29 +64,8 @@ function createComponent(name) {
 
   svgSketch.appendChild(element);
 
+  appEventEmitter.emit("updateProjectTree");
   reconfigDraggable();
-}
-
-function allPageToJson() {
-  return JSON.stringify(
-    {
-      font: projectData.fonts,
-      page: projectData.pages,
-    },
-    null,
-    "\t"
-  );
-}
-
-function allPageFromJson(json) {
-  let parse = JSON.parse(json);
-  projectData.fonts = parse.font;
-  projectData.pages = parse.page;
-
-  updateFontInArray();
-  rerenderComponent();
-  $("#sketch").click();
-  $(".property").change();
 }
 
 function waitFor(selector) {
@@ -412,11 +388,6 @@ function updatePropertyTable() {
           return;
         }
       }
-      /*       if (typeof property.validate !== "undefined") {
-        if (property.validate === "font") {
-          propertyValue = textFilter(propertyValue, getFontFromName(currentPage.children[seq].property.font).range);
-        }
-      } */
       currentPage.children[seq].property[propertyName] = propertyValue;
     } else if (property.type === "color") {
       if (/^#[0-9a-fA-F]{6}$/.test(propertyValue) === false) {

@@ -1,3 +1,4 @@
+const { EventEmitter } = require("events");
 const { shell } = require("electron");
 const { devLog } = require("./loggers");
 const { saveDataToFile, loadDataFromFile } = require("./savefile");
@@ -6,30 +7,11 @@ const { Menu } = remote;
 let prevOpenFilePath;
 
 /**
- * Load save file to projectData
- * @param {String} filePath
- * @param {Object} projectData
- */
-async function _loadProject(filePath, projectData) {
-  const fileProjectData = await loadDataFromFile(filePath);
-
-  devLog("fileProjectData", fileProjectData);
-
-  if (fileProjectData) {
-    Object.assign(projectData, fileProjectData);
-
-    await updateFontInArray();
-    rerenderComponent();
-    $("#sketch").click();
-    $(".property").change();
-  }
-}
-
-/**
  * Init Menu Module
+ * @param {EventEmitter} eventEmiiter
  * @param {Object} projectData
  */
-function init(projectData) {
+function init(eventEmiiter, projectData) {
   const statusDOM = document.getElementById("status");
 
   const template = [
@@ -61,12 +43,23 @@ function init(projectData) {
 
             prevOpenFilePath = result[0];
 
-            await _loadProject(prevOpenFilePath, projectData);
+            const fileProjectData = await loadDataFromFile(filePath);
+            devLog("fileProjectData", fileProjectData);
 
-            broadcastPageContent();
-            statusDOM.innerHTML = `Open file ${prevOpenFilePath} at ${new Date().toLocaleTimeString(
-              "th-TH"
-            )}`;
+            if (fileProjectData) {
+              Object.assign(projectData, fileProjectData);
+
+              eventEmiiter.emit("updateFontInArray");
+              eventEmiiter.emit("updateProjectTree");
+              rerenderComponent();
+              $("#sketch").click();
+              $(".property").change();
+
+              broadcastPageContent();
+              statusDOM.innerHTML = `Open file ${prevOpenFilePath} at ${new Date().toLocaleTimeString(
+                "th-TH"
+              )}`;
+            }
           },
         },
         {

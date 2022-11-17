@@ -116,11 +116,10 @@ section.space > .box-sketch {
   height: 100%;
 
   display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-section.project-structure {
+#project-tree {
+  display: none;
   background: #fff;
   border-right: 1px solid #ccc;
 
@@ -133,8 +132,17 @@ section.project-structure {
   overflow: auto;
   height: 100%;
 }
+/* 
+#project-tree > div {
+  cursor: pointer;
+} */
+
+#project-tree > div[data-level="1"] {
+  margin-left: 1em;
+}
 
 #sketch {
+  margin: auto;
   position: relative;
   background: #fff;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
@@ -152,10 +160,7 @@ section.project-structure {
   margin: 0;
 }
 
-#component-frame1,
-#component-frame2,
-#component-frame3,
-#component-frame4 {
+.component-frame {
   background-color: #000;
   display: none;
   border: none;
@@ -163,14 +168,14 @@ section.project-structure {
 }
 
 /* Top & Bottom */
-#component-frame1,
-#component-frame3 {
+.component-frame.top,
+.component-frame.bottom {
   width: 0;
   height: 1px;
 }
 
-#component-frame2,
-#component-frame4 {
+.component-frame.left,
+.component-frame.right {
   width: 1px;
   height: 0;
 }

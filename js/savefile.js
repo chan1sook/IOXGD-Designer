@@ -1,6 +1,13 @@
 const fs = require("fs");
+const { EventEmitter } = require("events");
 const { devLog, devError } = require("./loggers.js");
 const LASTEST_VERSION = 2;
+
+/**
+ * TODO: Init zoom module
+ * @param {EventEmitter} eventEmitter
+ */
+function init(eventEmitter) {}
 
 /**
  * Check if variable is Object
@@ -206,6 +213,7 @@ async function saveDataToFile(projectData, filePath) {
 }
 
 module.exports = Object.freeze({
+  init,
   validateSaveData,
   loadDataFromFile,
   saveDataToFile,

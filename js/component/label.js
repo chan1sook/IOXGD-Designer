@@ -6,13 +6,13 @@ addComponent({
       label: "Name",
       type: "text",
       pattern: /^\w+$/,
-      default: function() {
+      default: function () {
         return objectNameGen("txt");
-      }
+      },
     },
     parent: {
       label: "Parent",
-      type: "parent"
+      type: "parent",
     },
     hidden: {
       label: "Hidden",
@@ -20,14 +20,14 @@ addComponent({
       choice: [
         {
           label: "Show",
-          value: 1
+          value: 1,
         },
         {
           label: "Hides",
-          value: 0
+          value: 0,
         },
       ],
-      default: 1
+      default: 1,
     },
     define: {
       label: "Definition",
@@ -35,14 +35,14 @@ addComponent({
       choice: [
         {
           label: "Local",
-          value: 0
+          value: 0,
         },
         {
           label: "Global",
-          value: 1
+          value: 1,
         },
       ],
-      default: 0
+      default: 0,
     },
     alignX: {
       label: "Align X",
@@ -50,18 +50,18 @@ addComponent({
       choice: [
         {
           label: "Left",
-          value: 0
+          value: 0,
         },
         {
           label: "Center",
-          value: 1
+          value: 1,
         },
         {
           label: "Right",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     alignY: {
       label: "Align Y",
@@ -69,46 +69,46 @@ addComponent({
       choice: [
         {
           label: "Top",
-          value: 0
+          value: 0,
         },
         {
           label: "Mid",
-          value: 1
+          value: 1,
         },
         {
           label: "Bottom",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     x: {
       label: "X offset",
       type: "number",
       default: 0,
-      inputOffset: 'x'
+      inputOffset: "x",
     },
     y: {
       label: "Y offset",
       type: "number",
       default: 0,
-      inputOffset: 'y'
+      inputOffset: "y",
     },
     width: {
       label: "Width",
       type: "number",
-      default: 0
+      default: 0,
     },
     height: {
       label: "Height",
       type: "number",
-      default: 0
+      default: 0,
     },
     text: {
       label: "Text",
       type: "text",
       default: "Hello",
-      validate: 'font'
+      validate: "font",
     },
     text_align: {
       label: "Text Align",
@@ -116,23 +116,23 @@ addComponent({
       choice: [
         {
           label: "Left",
-          value: 0
+          value: 0,
         },
         {
           label: "Center",
-          value: 1
+          value: 1,
         },
         {
           label: "Right",
-          value: 2
+          value: 2,
         },
       ],
-      default: 0
+      default: 0,
     },
     color: {
       label: "Text Color",
       type: "color",
-      default: "#000000"
+      default: "#000000",
     },
     mode: {
       label: "Text Wrap",
@@ -140,38 +140,38 @@ addComponent({
       choice: [
         {
           label: "Expand",
-          value: 0
+          value: 0,
         },
         {
           label: "Wrap",
-          value: 1
+          value: 1,
         },
         {
           label: "Write dots",
-          value: 2
+          value: 2,
         },
         {
           label: "Scroll",
-          value: 3
+          value: 3,
         },
         {
           label: "Scroll circularly",
-          value: 4
+          value: 4,
         },
         {
           label: "Crop",
-          value: 5
+          value: 5,
         },
       ],
-      default: 0
+      default: 0,
     },
     font: {
       label: "Font",
-      type: "font"
-    }
+      type: "font",
+    },
   },
   render: {
-    create: function(id) {
+    create: function (id) {
       let group = document.createElement("div");
       let p = document.createElement("p");
       $(p).css({ padding: 0, margin: 0 });
@@ -190,15 +190,17 @@ addComponent({
       this.property.x = Math.round(this.property.x);
       this.property.y = Math.round(this.property.y);
     }, */
-    frame: function() {
+    frame: function () {
       return [];
     },
-    update: function(element) {
+    update: function (element) {
       let alignList = ["left", "center", "right"];
 
-      let font = getFontFromName(this.property.font);
+      let font = fontModule.getFontFromName(this.property.font);
 
-      $(element).find("p").text(textFilter(this.property.text, font.range));
+      $(element)
+        .find("p")
+        .text(fontModule.filterDisplayText(this.property.text, font.range));
 
       $(element).css({
         width: this.property.width == 0 ? "auto" : this.property.width,
@@ -207,28 +209,28 @@ addComponent({
         color: this.property.color,
         "font-family": font.name,
         "font-size": `${font.size}px`,
-        position: 'absolute',
+        position: "absolute",
       });
 
       updatePos.bind(this)(element);
     },
   },
-  build: async function(simulator, pagename, output_path) {
+  build: async function (simulator, pagename, output_path) {
     let long_mode_list = [
-      'LV_LABEL_LONG_EXPAND',
-      'LV_LABEL_LONG_BREAK',
-      'LV_LABEL_LONG_DOTS',
-      'LV_LABEL_LONG_SROLL',
-      'LV_LABEL_LONG_SROLL_CIRC',
-      'LV_LABEL_LONG_CROP'
+      "LV_LABEL_LONG_EXPAND",
+      "LV_LABEL_LONG_BREAK",
+      "LV_LABEL_LONG_DOTS",
+      "LV_LABEL_LONG_SROLL",
+      "LV_LABEL_LONG_SROLL_CIRC",
+      "LV_LABEL_LONG_CROP",
     ];
     let text_align_list = [
-      'LV_LABEL_ALIGN_LEFT',
-      'LV_LABEL_ALIGN_CENTER',
-      'LV_LABEL_ALIGN_RIGHT'
+      "LV_LABEL_ALIGN_LEFT",
+      "LV_LABEL_ALIGN_CENTER",
+      "LV_LABEL_ALIGN_RIGHT",
     ];
 
-    let font = getFontFromName(this.property.font);
+    let font = fontModule.getFontFromName(this.property.font);
 
     let code = "";
     let header = "";
@@ -236,24 +238,43 @@ addComponent({
     // Label object
     header += `lv_obj_t* ${this.property.name};\n`;
 
-    code += `${this.property.name} = lv_label_create(${!this.property.parent ? 'lv_scr_act()' : this.property.parent}, NULL);\n`;
-    code += `lv_obj_set_style_local_text_color(${this.property.name}, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.color.substring(1)}));\n`;
-    code += `lv_obj_set_style_local_text_font(${this.property.name}, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &${typeof font.variable !== "undefined" ? font.variable : font.name});\n`;
-    code += `lv_label_set_long_mode(${this.property.name}, ${long_mode_list[this.property.mode]});\n`;
-    code += `lv_label_set_align(${this.property.name}, ${text_align_list[this.property.text_align]});\n`;
+    code += `${this.property.name} = lv_label_create(${
+      !this.property.parent ? "lv_scr_act()" : this.property.parent
+    }, NULL);\n`;
+    code += `lv_obj_set_style_local_text_color(${
+      this.property.name
+    }, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x${this.property.color.substring(
+      1
+    )}));\n`;
+    code += `lv_obj_set_style_local_text_font(${
+      this.property.name
+    }, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &${
+      typeof font.variable !== "undefined" ? font.variable : font.name
+    });\n`;
+    code += `lv_label_set_long_mode(${this.property.name}, ${
+      long_mode_list[this.property.mode]
+    });\n`;
+    code += `lv_label_set_align(${this.property.name}, ${
+      text_align_list[this.property.text_align]
+    });\n`;
     code += `lv_label_set_text(${this.property.name}, "${this.property.text}");\n`;
     code += `lv_obj_set_size(${this.property.name}, ${this.property.width}, ${this.property.height});\n`;
-    code += `lv_obj_align(${this.property.name}, NULL, ${propertyToAlign(this.property)}, ${this.property.x}, ${this.property.y});\n`;
+    code += `lv_obj_align(${this.property.name}, NULL, ${propertyToAlign(
+      this.property
+    )}, ${this.property.x}, ${this.property.y});\n`;
     code += `\n`;
 
-    code += `lv_obj_set_hidden(${this.property.name}, ${this.property.hidden === 0 ? 'true' : 'false'});`;
+    code += `lv_obj_set_hidden(${this.property.name}, ${
+      this.property.hidden === 0 ? "true" : "false"
+    });`;
     code += `\n`;
 
-    if (this.property.define == 0) { // define local
+    if (this.property.define == 0) {
+      // define local
       code = `${header}\n${code}`;
       header = "";
     }
 
     return { header, content: code };
-  }
+  },
 });

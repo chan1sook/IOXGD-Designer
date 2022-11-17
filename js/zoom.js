@@ -1,10 +1,26 @@
+const { EventEmitter } = require("events");
+
 let zoomLevel = 1.0;
+let isCtrlDown = false;
+
+/**
+ * _keysDownsHandler
+ * @param {KeyboardEvent} ev
+ * @param {Map} keysDowns
+ */
+function _keysDownsHandler(ev, keysDowns) {
+  isCtrlDown =
+    keysDowns.get("Control") === true || keysDowns.get("Meta") === true;
+}
 
 /**
  * Init zoom module
- * @param {Map} keysDowns
+ * @param {EventEmitter} eventEmitter
  */
-function init(keysDowns) {
+function init(eventEmitter) {
+  eventEmitter.on("keydown", _keysDownsHandler);
+  eventEmitter.on("keyup", _keysDownsHandler);
+
   const skecthDOM = document.getElementById("sketch");
   const zoomSizeDOM = document.getElementById("zoom-size");
   const zoomInDOM = document.getElementById("zoom-in-btn");
@@ -18,10 +34,6 @@ function init(keysDowns) {
     }
     skecthDOM.style.transform = `scale(${zoomLevel})`;
     zoomSizeDOM.value = `${Math.round(zoomLevel * 100)}%`;
-  };
-
-  const isCtrlDown = () => {
-    return keysDowns.get("Control") === true || keysDowns.get("Meta") === true;
   };
 
   const zoomInFn = () => {
@@ -52,7 +64,7 @@ function init(keysDowns) {
   });
 
   window.addEventListener("wheel", (ev) => {
-    if (!isCtrlDown()) {
+    if (!isCtrlDown) {
       return;
     }
 
